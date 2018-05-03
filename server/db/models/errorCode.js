@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var errorCodeSchema = new Schema({
+  // created is when this error was recorded on the satellite itself
   created: {
     type: Date,
     default: Date.now,

@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var transmissionSchema = new Schema({
+  // created is when transmission was received by the server
   created: {
     type: Date,
     default: Date.now,
