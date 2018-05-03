@@ -15,8 +15,6 @@ router.post('/', function (req, res, next) {
     // for testing, json is directly on the req.body
     var transmission = req.body.transmission;
 
-    console.log(transmission);
-
     var dataType = transmission.preamble.message_type;
 
     var transmissionCuid = cuid();
