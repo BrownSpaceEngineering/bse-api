@@ -17,9 +17,13 @@ var dataSchema = new Schema({
   data_type: {
     type: String,
     required: true
-  }
+  },
 
   // REST OF DATA IS DIRECTLY SAVED
+  payload: {
+    type: Schema.Types.Mixed,
+    required: true
+  }
 });
 
 module.exports = mongoose.model('Data', dataSchema);

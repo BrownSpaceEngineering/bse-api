@@ -11,9 +11,13 @@ var errorCodeSchema = new Schema({
   transmission_cuid: {
     type: String,
     required: true
-  }
+  },
 
   // REST OF ERROR IS DIRECTLY SAVED
+  payload: {
+    type: Schema.Types.Mixed,
+    required: true
+  }
 });
 
 module.exports = mongoose.model('ErrorCode', errorCodeSchema);

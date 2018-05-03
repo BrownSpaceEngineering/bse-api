@@ -15,6 +15,8 @@ router.post('/', function (req, res, next) {
     // for testing, json is directly on the req.body
     var transmission = req.body.transmission;
 
+    console.log(transmission);
+
     var dataType = transmission.preamble.message_type;
 
     var transmissionCuid = cuid();
@@ -25,10 +27,12 @@ router.post('/', function (req, res, next) {
       preamble: transmission.preamble
     });
 
-    // An Array of Promises
+    // An array of Promises for Error Code database saves
     var newErrorCodePromises = transmission.errors.map(errorCode => {
-      var newErrorCode = new ErrorCode(errorCode);
-      newErrorCode.transmission_cuid = transmissionCuid;
+      var newErrorCode = new ErrorCode({
+        payload: errorCode,
+        transmission_cuid: transmissionCuid
+      });
       return newErrorCode.save();
     });
 
@@ -41,8 +45,10 @@ router.post('/', function (req, res, next) {
 
       console.log(chalk.green('Error Codes Saved'));
 
-      var newCurrentInfo = new CurrentInfo(transmission.current_info);
-      newCurrentInfo.transmission_cuid = transmissionCuid;
+      var newCurrentInfo = new CurrentInfo({
+        payload: transmission.current_info,
+        transmission_cuid: transmissionCuid
+      });
 
       return newCurrentInfo.save();
     })
@@ -54,17 +60,22 @@ router.post('/', function (req, res, next) {
       // If the Data is an Array Value
       if (Array.isArray(transmission.data)) {
         var newDataPromises = transmission.data.map(data => {
-          var newData = new Data(data);
-          newData.transmission_cuid = transmissionCuid;
-          newData.data_type = dataType;
+          var newData = new Data({
+            payload: data,
+            data_type: dataType,
+            transmission_cuid: transmissionCuid
+          });
           return newData.save();
         })
 
         return Promise.all(newDataPromises);
       } else {
-        var newData = new Data(transmission.data);
-        newData.transmission_cuid = transmissionCuid;
-        newData.data_type = dataType;
+        // Otherwise the transmission.data is an Object and not an array of objects
+        var newData = new Data({
+          payload: transmission.data,
+          data_type: dataType,
+          transmission_cuid: transmissionCuid
+        });
         return newData.save();
       }
     })
@@ -85,7 +96,7 @@ router.post('/', function (req, res, next) {
       return newTransmission.save();
     })
     .then(savedTransmission => {
-      console.log(savedTransmission);
+      console.log(chalk.green('Transmission Saved'));
       res.end();
     })
     .catch(err => {
