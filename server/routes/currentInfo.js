@@ -20,13 +20,17 @@ router.get('/', function (req, res, next) {
       })
     }
 
-    // Check if end date property exists
+    // Check if start date property exists
     if (req.query.start_date) {
       query = query.where({
         created: {
           $gte: new Date(req.query.start_date)  // created property is greater than that date
         }
       })
+    }
+
+    if (req.query.start_date || req.query.end_date) {
+      query = query.sort('+created') // ascending order
     }
 
 
@@ -60,6 +64,45 @@ router.get('/', function (req, res, next) {
     next(err);
   }
 })
+
+/*
+  Request Query
+  limit: integer, default everything
+  fields: comma delimited String, default everything
+*/
+router.get('/latest', function (req, res, next) {
+  var query = CurrentInfo.find().sort('-created');
+
+  if (req.query.limit) {
+    query = query.limit(+req.query.limit) // cast to number
+  }
+
+  query.exec()
+  .then(currentInfos => {
+    // Filter for only selected fields
+    if (req.query.fields) {
+      var fields = req.query.fields.split(',');
+
+      currentInfos = currentInfos.map(currentInfo => {
+        // Copy over only the ones user selected
+
+        var filteredPayload = {};
+
+        fields.forEach(field => {
+          filteredPayload[field] = currentInfo.payload[field];
+        })
+
+        currentInfo.payload = filteredPayload;
+        return currentInfo;
+      })
+    }
+
+    res.json(currentInfos);
+  })
+  .catch(err => {
+    console.error(err);
+  })
+});
 
 router.get('/:transmissionCuid', function (req, res, next) {
   var transmissionCuid = req.params.transmissionCuid;
