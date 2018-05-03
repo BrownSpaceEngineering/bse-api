@@ -5,7 +5,6 @@ var Data = require('../db/models/data');
 /**
 Get all data 
 */
-
 router.get('/', function (req, res, next) {
 	Data.find()
 	.then(data => {
@@ -110,9 +109,6 @@ router.get('/low-power', function (req, res, next) {
     next(err);
   })
 })
-
-
-
 
 
 
