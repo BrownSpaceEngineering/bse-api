@@ -1,5 +1,6 @@
 var router = require('express').Router();
 var Data = require('../../db/models/data');
+var FLASH_CMP = 'FLASH_CMP';
 
 /*
   Req Query has the following possible parameters
@@ -8,7 +9,6 @@ var Data = require('../../db/models/data');
   fields: comma delimited String, default everything
 */
 router.get('/', function (req, res, next) {
-  var FLASH_CMP = 'FLASH_CMP';
   try {
     var query = Data.find({
     	data_type: FLASH_CMP
@@ -64,6 +64,55 @@ router.get('/', function (req, res, next) {
     next(err);
   }
 })
+
+/*
+  Request Query
+  limit: integer, default everything
+  fields: comma delimited String, default everything
+*/
+router.get('/latest', function (req, res, next) {
+  try {
+    var query = Data.find({
+      data_type: FLASH_CMP
+    })
+    .sort('-created');
+
+    if (req.query.limit) {
+      query = query.limit(+req.query.limit) // cast to number
+    }
+
+    query.exec()
+    .then(currentInfos => {
+      // Filter for only selected fields
+      if (req.query.fields) {
+        var fields = req.query.fields.split(',');
+
+        currentInfos = currentInfos.map(currentInfo => {
+          // Copy over only the ones user selected
+
+          var filteredCurrentInfo = {
+            created: currentInfo.created,
+            transmission_cuid: currentInfo.transmission_cuid
+          };
+
+          fields.forEach(field => {
+            filteredCurrentInfo[field] = currentInfo[field];
+          })
+
+          return filteredCurrentInfo;
+        })
+      }
+
+      res.json(currentInfos);
+    })
+    .catch(err => {
+      console.error(err);
+    })
+  } catch (err) {
+    err.status = 400;
+    next(err);
+  }
+});
 
 
 module.exports = router
