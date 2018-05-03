@@ -71,56 +71,67 @@ router.get('/', function (req, res, next) {
   fields: comma delimited String, default everything
 */
 router.get('/latest', function (req, res, next) {
-  var query = CurrentInfo.find().sort('-created');
+  try {
+    var query = CurrentInfo.find().sort('-created');
 
-  if (req.query.limit) {
-    query = query.limit(+req.query.limit) // cast to number
-  }
-
-  query.exec()
-  .then(currentInfos => {
-    // Filter for only selected fields
-    if (req.query.fields) {
-      var fields = req.query.fields.split(',');
-
-      currentInfos = currentInfos.map(currentInfo => {
-        // Copy over only the ones user selected
-
-        var filteredCurrentInfo = {
-          created: currentInfo.created,
-          transmission_cuid: currentInfo.transmission_cuid
-        };
-
-        fields.forEach(field => {
-          filteredCurrentInfo[field] = currentInfo[field];
-        })
-
-        return filteredCurrentInfo;
-      })
+    if (req.query.limit) {
+      query = query.limit(+req.query.limit) // cast to number
     }
 
-    res.json(currentInfos);
-  })
-  .catch(err => {
-    console.error(err);
-  })
+    query.exec()
+    .then(currentInfos => {
+      // Filter for only selected fields
+      if (req.query.fields) {
+        var fields = req.query.fields.split(',');
+
+        currentInfos = currentInfos.map(currentInfo => {
+          // Copy over only the ones user selected
+
+          var filteredCurrentInfo = {
+            created: currentInfo.created,
+            transmission_cuid: currentInfo.transmission_cuid
+          };
+
+          fields.forEach(field => {
+            filteredCurrentInfo[field] = currentInfo[field];
+          })
+
+          return filteredCurrentInfo;
+        })
+      }
+
+      res.json(currentInfos);
+    })
+    .catch(err => {
+      console.error(err);
+    })
+  } catch (err) {
+    err.status = 400;
+    next(err);
+  }
 });
 
 router.get('/:transmissionCuid', function (req, res, next) {
-  var transmissionCuid = req.params.transmissionCuid;
+  try {
+    var transmissionCuid = req.params.transmissionCuid;
 
-  CurrentInfo.findOne({
-    transmission_cuid: transmissionCuid
-  }).then(currentInfo => {
-    if (currentInfo) {
-      res.json(currentInfo);
-    } else {
-      res.status(400).send('Current Info not found');
-    }
-  })
-  .catch(err => {
+    CurrentInfo.findOne({
+      transmission_cuid: transmissionCuid
+    }).then(currentInfo => {
+      if (currentInfo) {
+        res.json(currentInfo);
+      } else {
+        res.status(400).send('Current Info not found');
+      }
+    })
+    .catch(err => {
+      next(err);
+    })
+  } catch (err) {
+    err.status = 400;
     next(err);
-  })
+  }
+
 })
 
 module.exports = router;
