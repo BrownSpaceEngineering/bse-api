@@ -3,7 +3,6 @@ var CurrentInfo = require('../db/models/currentInfo');
 
 /*
   Req Query has the following possible parameters
-  limit: integer, default everything
   end_date: Date, default None
   start_date: Date, default None
   fields: comma delimited String, default everything
@@ -11,9 +10,6 @@ var CurrentInfo = require('../db/models/currentInfo');
 router.get('/', function (req, res, next) {
   try {
     var query = CurrentInfo.find();
-
-    // Check if limit property exists
-    if (req.query.limit) query = query.limit(+req.query.limit) // cast to number
 
     // Check if end date property exists
     if (req.query.end_date) {
