@@ -30,10 +30,8 @@ router.post('/', function (req, res, next) {
 
     // An array of Promises for Error Code database saves
     var newErrorCodePromises = transmission.errors.map(errorCode => {
-      var newErrorCode = new ErrorCode({
-        payload: errorCode,
-        transmission_cuid: transmissionCuid
-      });
+      var newErrorCode = new ErrorCode(errorCode);
+      newErrorCode.transmission_cuid = transmissionCuid;
       return newErrorCode.save();
     });
 
@@ -46,10 +44,8 @@ router.post('/', function (req, res, next) {
 
       console.log(chalk.green('Error Codes Saved'));
 
-      var newCurrentInfo = new CurrentInfo({
-        payload: transmission.current_info,
-        transmission_cuid: transmissionCuid
-      });
+      var newCurrentInfo = new CurrentInfo(transmission.current_info);
+      newCurrentInfo.transmission_cuid = transmissionCuid;
 
       return newCurrentInfo.save();
     })

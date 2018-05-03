@@ -41,14 +41,16 @@ router.get('/', function (req, res, next) {
         currentInfos = currentInfos.map(currentInfo => {
           // Copy over only the ones user selected
 
-          var filteredPayload = {};
+          var filteredCurrentInfo = {
+            created: currentInfo.created,
+            transmission_cuid: currentInfo.transmission_cuid
+          };
 
           fields.forEach(field => {
-            filteredPayload[field] = currentInfo.payload[field];
+            filteredCurrentInfo[field] = currentInfo[field];
           })
 
-          currentInfo.payload = filteredPayload;
-          return currentInfo;
+          return filteredCurrentInfo;
         })
       }
 
@@ -84,14 +86,16 @@ router.get('/latest', function (req, res, next) {
       currentInfos = currentInfos.map(currentInfo => {
         // Copy over only the ones user selected
 
-        var filteredPayload = {};
+        var filteredCurrentInfo = {
+          created: currentInfo.created,
+          transmission_cuid: currentInfo.transmission_cuid
+        };
 
         fields.forEach(field => {
-          filteredPayload[field] = currentInfo.payload[field];
+          filteredCurrentInfo[field] = currentInfo[field];
         })
 
-        currentInfo.payload = filteredPayload;
-        return currentInfo;
+        return filteredCurrentInfo;
       })
     }
 

@@ -14,9 +14,34 @@ var errorCodeSchema = new Schema({
     required: true
   },
 
-  // REST OF ERROR IS DIRECTLY SAVED
-  payload: {
-    type: Schema.Types.Mixed,
+  error_location: {
+    type: Number,
+    required: true
+  },
+
+  priority_bit: {
+    type: Number,
+    required: true
+  },
+
+  error_code_name: {
+    type: String,
+    required: true
+  },
+
+  error_location_name: {
+    type: String,
+    required: true
+  },
+
+  error_code: {
+    type: Number,
+    required: true
+  },
+
+  // uncorrected timestamp, for archival purposes
+  timestamp: {
+    type: Number,
     required: true
   }
 });
