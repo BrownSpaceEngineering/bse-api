@@ -3,6 +3,10 @@ var Transmission = require('../db/models/transmission');
 
 router.get('/', function (req, res, next) {
   Transmission.find()
+  .populate('data')
+  .populate('error_codes')
+  .populate('current_info')
+  .exec()
   .then(transmissions => {
     res.json(transmissions);
   })
@@ -16,7 +20,12 @@ router.get('/:cuid', function (req, res, next) {
 
   Transmission.findOne({
     cuid: cuid
-  }).then(transmission => {
+  })
+  .populate('data')
+  .populate('error_codes')
+  .populate('current_info')
+  .exec()
+  .then(transmission => {
     if (transmission) {
       res.json(transmission);
     } else {
