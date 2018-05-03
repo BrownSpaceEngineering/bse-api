@@ -29,9 +29,7 @@ router.get('/', function (req, res, next) {
       })
     }
 
-    if (req.query.start_date || req.query.end_date) {
-      query = query.sort('+created') // ascending order
-    }
+    query = query.sort('+created') // ascending order
 
 
     query.exec() // Execute Query
