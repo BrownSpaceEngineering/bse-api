@@ -24,7 +24,10 @@ var transmissionSchema = new Schema({
     type: Schema.Types.ObjectId, ref: 'Data'
   }],
 
-  preamble: Schema.Types.Mixed,
+  preamble: {
+    type: Schema.Types.Mixed,
+    required: true
+  },
 
   error_codes: [{
     type: Schema.Types.ObjectId, ref: 'ErrorCode'
