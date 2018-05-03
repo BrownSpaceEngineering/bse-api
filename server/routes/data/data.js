@@ -1,0 +1,60 @@
+var router = require('express').Router();
+var Data = require('../../db/models/data');
+
+
+router.get('/', function (req, res, next) {
+  try {
+    var query = Data.find();
+
+    // Check if end date property exists
+    if (req.query.end_date) {
+      query = query.where({
+        created: {
+          $lte: new Date(req.query.end_date)  // created property is less than that date
+        }
+      })
+    }
+
+    // Check if start date property exists
+    if (req.query.start_date) {
+      query = query.where({
+        created: {
+          $gte: new Date(req.query.start_date)  // created property is greater than that date
+        }
+      })
+    }
+
+    query = query.sort('+created') // ascending order
+
+    query.exec() // Execute Query
+    .then(data => {
+      // Filter for only selected fields
+      if (req.query.fields) {
+        var fields = req.query.fields.split(',');
+
+        data = data.map(datum => {
+          // Copy over only the ones user selected
+
+          var filteredPayload = {};
+
+          fields.forEach(field => {
+            filteredPayload[field] = datum.payload[field];
+          })
+
+          datum.payload = filteredPayload;
+          return datum;
+        })
+      }
+
+      res.json(data);
+    })
+    .catch(err => {
+      next(err);
+    })
+  } catch (err) {
+    err.status = 400;
+    next(err);
+  }
+})
+
+module.exports = router

@@ -6,6 +6,6 @@ router.use('/error-codes', require('./errorCode'));
 router.use('/current-infos', require('./currentInfo'));
 
 // Data stuff
-router.use('/data', require('./data'));
+router.use('/data', require('./data/index'));
 
 module.exports = router;
