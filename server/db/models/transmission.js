@@ -15,6 +15,16 @@ var transmissionSchema = new Schema({
     required: true
   },
 
+  // Post Reed Solomon decoding string for parsing
+  corrected: {
+    type: String,
+    required: true
+  },
+
+  station_name: {
+    type: String
+  },
+
   // Unique Identifier
   cuid: {
     type: String,

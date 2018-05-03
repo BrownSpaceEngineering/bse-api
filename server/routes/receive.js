@@ -10,6 +10,7 @@ var chalk = require('chalk');
 router.post('/', function (req, res, next) {
   try {
     var raw = req.body.raw;
+    var corrected = req.body.corrected;
 
     // convert raw here
     // for testing, json is directly on the req.body
@@ -22,7 +23,9 @@ router.post('/', function (req, res, next) {
     var newTransmission = new Transmission({
       raw: raw,
       cuid: transmissionCuid,
-      preamble: transmission.preamble
+      preamble: transmission.preamble,
+      corrected: corrected,
+      station_name: req.body.station_name ? req.body.station_name : '' // if station_name exists on the body, otherwise keep it blank
     });
 
     // An array of Promises for Error Code database saves
