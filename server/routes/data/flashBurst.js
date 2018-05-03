@@ -87,28 +87,30 @@ router.get('/latest', function (req, res, next) {
     }
 
     query.exec()
-    .then(currentInfos => {
+    .then(data => {
       // Filter for only selected fields
       if (req.query.fields) {
         var fields = req.query.fields.split(',');
 
-        currentInfos = currentInfos.map(currentInfo => {
+        data = data.map(datum => {
           // Copy over only the ones user selected
 
-          var filteredCurrentInfo = {
-            created: currentInfo.created,
-            transmission_cuid: currentInfo.transmission_cuid
-          };
+          var filteredBurst = [];
+          burst = datum.payload.burst
+          for(i = 0; i < burst.length; i++) {
+            filteredMap = {}
+            // For each field
+            fields.forEach(field => {
+              filteredMap[field] = burst[i][field]
+            })
+            filteredBurst.push(filteredMap)
+          }
 
-          fields.forEach(field => {
-            filteredCurrentInfo[field] = currentInfo[field];
-          })
-
-          return filteredCurrentInfo;
+          datum.payload.burst = filteredBurst;
+          return datum
         })
       }
-
-      res.json(currentInfos);
+      res.json(data);
     })
     .catch(err => {
       console.error(err);
