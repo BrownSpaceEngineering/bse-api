@@ -33,7 +33,7 @@ var currentInfoSchema = new Schema({
     required: true
   },
   LF_B2_RUN_CHG: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L1_SNS: {
@@ -45,15 +45,15 @@ var currentInfoSchema = new Schema({
     required: true
   },
   L2_FAULTN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   LF_B1_FAULTN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   LF_B1_CHGN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   PANELREF: {
@@ -61,7 +61,7 @@ var currentInfoSchema = new Schema({
     required: true
   },
   LF_B1_RUN_CHG: {
-    type: String,
+    type: Boolean,
     required: true
   },
   time_to_flash: {
@@ -77,23 +77,23 @@ var currentInfoSchema = new Schema({
     required: true
   },
   LF_B2_CHGN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L1_FAULTN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L1_ST: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L2_DISG: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L1_RUN_CHG: {
-    type: String,
+    type: Boolean,
     required: true
   },
   boot_count: {
@@ -101,11 +101,11 @@ var currentInfoSchema = new Schema({
     required: true
   },
   L2_CHGN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L2_ST: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L2_REF: {
@@ -117,7 +117,7 @@ var currentInfoSchema = new Schema({
     required: true
   },
   L1_CHGN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   LF2REF: {
@@ -125,15 +125,15 @@ var currentInfoSchema = new Schema({
     required: true
   },
   L1_DISG: {
-    type: String,
+    type: Boolean,
     required: true
   },
   LF_B2_FAULTN: {
-    type: String,
+    type: Boolean,
     required: true
   },
   L2_RUN_CHG: {
-    type: String,
+    type: Boolean,
     required: true
   }
 });
