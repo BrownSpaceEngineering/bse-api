@@ -9,16 +9,17 @@ var transmissionSchema = new Schema({
     required: true
   },
 
-  // Original Hex String Received
-  raw: {
+  // Original Hex Strings Received
+  raws: [{
     type: String,
     required: true
-  },
+  }],
 
   // Post Reed Solomon decoding string for parsing
   corrected: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
 
   station_names: [{

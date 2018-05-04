@@ -1,4 +1,8 @@
 // Run this while local server is running
+var Chance = require('chance');
+
+// Instantiate Chance so it can be used
+var chance = new Chance();
 
 var rp = require('request-promise');
 
@@ -21,8 +25,8 @@ var packetPromises = packets.map(packet => {
 
   packetOption.body = {
     transmission: packet,
-    raw: 'ifcjiajioajd01j0121e', // something random
-    corrected: '1ioj10danklvnapadf', // something random
+    raw: chance.hash({length: 510}), // something random
+    corrected: chance.hash({length: 446}), // something random
     station_name: 'Test Computer'
   }
 

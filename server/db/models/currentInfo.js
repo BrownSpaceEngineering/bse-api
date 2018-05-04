@@ -11,7 +11,8 @@ var currentInfoSchema = new Schema({
 
   transmission_cuid: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
 
   // REST OF DATA IS DIRECTLY SAVED

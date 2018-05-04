@@ -20,23 +20,33 @@ router.post('/', function (req, res, next) {
 
     // First find if the transmission has been received before
     Transmission.findOne()
-    .where('preamble.timestamp').equals(transmission.preamble.timestamp)
+    .where('corrected').equals(corrected)
     .exec()
     .then(checkTransmission => {
+      // If transmission with same corrected string exists
       if (checkTransmission) {
+        // Add station_name to the list of station names
         checkTransmission.station_names.push(station_name);
+
+        // Append raw to list of raws
+        checkTransmission.raws.push(raw);
+
         checkTransmission.save()
-        .then(() =>{
-          console.log(chalk.green('Transmission already exists - added new station'));
+        .then(() => {
+          console.log(chalk.green('Transmission already exists - appended information'));
           res.status(201).end();
+        })
+        .catch(err => {
+          next(err);
         })
       } else {
         var dataType = transmission.preamble.message_type;
 
+        // unique identifier
         var transmissionCuid = cuid();
 
         var newTransmission = new Transmission({
-          raw: raw,
+          raws: [raw],
           cuid: transmissionCuid,
           preamble: transmission.preamble,
           corrected: corrected,
@@ -110,6 +120,9 @@ router.post('/', function (req, res, next) {
         .then(savedTransmission => {
           console.log(chalk.green('Transmission Saved'));
           res.end();
+        })
+        .catch(err => {
+          next(err);
         })
       }
     })
