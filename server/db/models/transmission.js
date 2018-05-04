@@ -21,9 +21,9 @@ var transmissionSchema = new Schema({
     required: true
   },
 
-  station_name: {
+  station_names: [{
     type: String
-  },
+  }],
 
   // Unique Identifier
   cuid: {
