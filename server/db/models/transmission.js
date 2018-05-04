@@ -36,8 +36,39 @@ var transmissionSchema = new Schema({
   }],
 
   preamble: {
-    type: Schema.Types.Mixed,
-    required: true
+    num_errors: {
+      type: Number,
+      required: true
+    },
+    SPF_ST: {
+      type: Boolean,
+      required: true
+    },
+    timestamp: {
+      type: Number,
+      required: true,
+      unique: true
+    },
+    callsign: {
+      type: String,
+      required: true
+    },
+    MRAM_CPY: {
+      type: Boolean,
+      required: true
+    },
+    satellite_state: {
+      type: String,
+      required: true
+    },
+    message_type: {
+      type: String,
+      required: true
+    },
+    bytes_of_data: {
+      type: Number,
+      required: true
+    }
   },
 
   error_codes: [{

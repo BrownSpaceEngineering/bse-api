@@ -244,7 +244,7 @@
     "preamble": {
         "num_errors": 50,
         "SPF_ST": false,
-        "timestamp": 312832,
+        "timestamp": 312831,
         "callsign": "WL9XZE",
         "MRAM_CPY": false,
         "satellite_state": "IDLE_FLASH",
