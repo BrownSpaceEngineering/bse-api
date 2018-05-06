@@ -4,11 +4,25 @@ var ErrorCode = require('../db/models/errorCode');
 var Data = require('../db/models/data');
 var CurrentInfo = require('../db/models/currentInfo');
 var Transmission = require('../db/models/transmission');
+var Dump = require('../db/models/dump');
 var cuid = require('cuid');
 var chalk = require('chalk');
 
 router.post('/', function (req, res, next) {
   try {
+
+    // Save entire request body into Dump just for archival purposes
+    Dump.create({
+      payload: req.body
+    })
+    .then(() => {
+      console.log(chalk.blue('Received a request and saved'));
+    })
+    .catch(err => {
+      next(err);
+    })
+
+
     var raw = req.body.raw;
     var corrected = req.body.corrected;
 
