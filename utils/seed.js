@@ -1,4 +1,8 @@
 // Run this while local server is running
+
+// Loads environment variables from our .env file
+require('dotenv').config(); // defaults to .env
+
 var Chance = require('chance');
 
 // Instantiate Chance so it can be used
@@ -27,7 +31,8 @@ var packetPromises = packets.map(packet => {
     transmission: packet,
     raw: chance.hash({length: 510}), // something random
     corrected: chance.hash({length: 446}), // something random
-    station_name: 'Test Computer'
+    station_name: 'Test Computer',
+    secret: process.env.SECRET
   }
 
   return rp(packetOption);
