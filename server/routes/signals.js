@@ -2,6 +2,15 @@ var router = require('express').Router();
 var CurrentInfo = require('../db/models/currentInfo');
 var Data = require('../db/models/data');
 
+function separateArray(arr) {
+	var toReturn = {timestamps: [], values: []}	
+	for (var i = 0; i < arr.length; i++) {
+	    toReturn.timestamps[i] = arr[i].timestamp;
+	    toReturn.values[i] = arr[i].value;
+	}
+	return toReturn;
+}
+
 /*
   Req Query has the following possible parameters
   end_date: Date, default None
@@ -84,8 +93,9 @@ router.get('/', function (req, res, next) {
 	    	});
 	    	for (var field in toReturn) {
 	    		toReturn[field].sort(function(a,b) {
-					return new Date(b.timestamp) - new Date(a.timestamp);
+					return new Date(a.timestamp) - new Date(b.timestamp);
 				});
+	    		toReturn[field] = separateArray(toReturn[field]);
 	    	}
 	    	res.json(toReturn);
         } else {
@@ -159,7 +169,8 @@ router.get('/latest', function (req, res, next) {
 				if (req.query.limit) {
 					toReturn[field] = toReturn[field].slice(0, req.query.limit);					
 				}
-	    	}	    	
+				toReturn[field] = separateArray(toReturn[field]);
+	    	}
 	    	res.json(toReturn);
         } else {        	        	
         	res.statusMessage = "Must specify at least one signal field";
