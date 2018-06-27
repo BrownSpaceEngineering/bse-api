@@ -13,7 +13,7 @@ router.get('/', function (req, res, next) {
     if (req.query.end_date) {
       query = query.where({
         created: {
-          $lte: new Date(req.query.end_date)  // created property is less than that date
+          $lte: new Date(Number(req.query.end_date))  // created property is less than that date
         }
       })
     }
@@ -22,7 +22,7 @@ router.get('/', function (req, res, next) {
     if (req.query.start_date) {
       query = query.where({
         created: {
-          $gte: new Date(req.query.start_date)  // created property is greater than that date
+          $gte: new Date(Number(req.query.start_date))  // created property is greater than that date
         }
       })
     }

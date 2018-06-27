@@ -15,33 +15,36 @@ router.get('/', function (req, res, next) {
 
     // Check if end date property exists
     if (req.query.end_date) {
+      var end_date = Number(req.query.end_date);      
       curInfoQuery = curInfoQuery.where({
         created: {
-          $lte: new Date(req.query.end_date)  // created property is less than that date
+          $lte: new Date(end_date)  // created property is less than that date
         }
       });
       dataInfoQuery = dataQuery.where({
         created: {
-          $lte: new Date(req.query.end_date)  // created property is less than that date
+          $lte: new Date(end_date)  // created property is less than that date
         }
       })
     }
 
     // Check if start date property exists
     if (req.query.start_date) {
+      var start_date = Number(req.query.start_date);
       curInfoQuery = curInfoQuery.where({
         created: {
-          $gte: new Date(req.query.start_date)  // created property is greater than that date
+          $gte: new Date(start_date)  // created property is greater than that date
         }
       });
       dataQuery = dataQuery.where({
         created: {
-          $gte: new Date(req.query.start_date)  // created property is greater than that date
+          $gte: new Date(start_date)  // created property is greater than that date
         }
       });
     }
 
-    query = query.sort('+created') // ascending order
+    curInfoQuery = curInfoQuery.sort('+created'); // ascending order
+    dataQuery = dataQuery.sort('+created'); // ascending order
 
     Promise.all([
   		curInfoQuery,
@@ -58,7 +61,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in currentInfo) {
 		        		var curEntry = {
-            				timestamp: currentInfo.created.getTime() / 1000,
+            				timestamp: currentInfo.created.getTime(),
 	            			value: currentInfo[field]
           				};
           				toReturn[field].push(curEntry);
@@ -72,7 +75,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in datum.payload) {
 		        		var curEntry = {
-	            			timestamp: datum.created.getTime() / 1000,
+	            			timestamp: datum.created.getTime(),
             				value: datum.payload[field]
           				};
           				toReturn[field].push(curEntry);
@@ -127,7 +130,7 @@ router.get('/latest', function (req, res, next) {
 		        	}
 		        	if (field in currentInfo) {
 		        		var curEntry = {
-            				timestamp: currentInfo.created.getTime() / 1000,
+            				timestamp: currentInfo.created.getTime(),
 	            			value: currentInfo[field]
           				};
           				toReturn[field].push(curEntry);
@@ -141,7 +144,7 @@ router.get('/latest', function (req, res, next) {
 		        	}
 		        	if (field in datum.payload) {
 		        		var curEntry = {
-	            			timestamp: datum.created.getTime() / 1000,
+	            			timestamp: datum.created.getTime(),
             				value: datum.payload[field]
           				};
           				toReturn[field].push(curEntry);
