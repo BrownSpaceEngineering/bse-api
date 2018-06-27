@@ -163,10 +163,10 @@ router.get('/latest', function (req, res, next) {
     		res.status(400).end();        
         }
 	})
-    .catch(err => {    	
-      console.error(err);
+    .catch(err => {
+      next(err);
     })
-  } catch (err) {  	
+  } catch (err) {
     err.status = 400;
     next(err);
   }
