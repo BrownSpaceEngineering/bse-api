@@ -58,7 +58,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in currentInfo) {
 		        		var curEntry = {
-            				timestamp: currentInfo.created,
+            				timestamp: currentInfo.created.getTime() / 1000,
 	            			value: currentInfo[field]
           				};
           				toReturn[field].push(curEntry);
@@ -72,7 +72,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in datum.payload) {
 		        		var curEntry = {
-	            			timestamp: datum.created,
+	            			timestamp: datum.created.getTime() / 1000,
             				value: datum.payload[field]
           				};
           				toReturn[field].push(curEntry);
@@ -127,7 +127,7 @@ router.get('/latest', function (req, res, next) {
 		        	}
 		        	if (field in currentInfo) {
 		        		var curEntry = {
-            				timestamp: currentInfo.created,
+            				timestamp: currentInfo.created.getTime() / 1000,
 	            			value: currentInfo[field]
           				};
           				toReturn[field].push(curEntry);
@@ -141,7 +141,7 @@ router.get('/latest', function (req, res, next) {
 		        	}
 		        	if (field in datum.payload) {
 		        		var curEntry = {
-	            			timestamp: datum.created,
+	            			timestamp: datum.created.getTime() / 1000,
             				value: datum.payload[field]
           				};
           				toReturn[field].push(curEntry);
@@ -154,8 +154,7 @@ router.get('/latest', function (req, res, next) {
 					return new Date(b.timestamp) - new Date(a.timestamp);
 				});
 				if (req.query.limit) {
-					toReturn[field] = toReturn[field].slice(0, req.query.limit);
-					console.log(toReturn[field]);
+					toReturn[field] = toReturn[field].slice(0, req.query.limit);					
 				}
 	    	}	    	
 	    	res.json(toReturn);
