@@ -6,6 +6,9 @@ var path = require('path');
 var express = require('express');
 var app = express();
 
+var cors = require('cors');
+app.use(cors());
+
 var bodyParser = require('body-parser');
 var morgan = require('morgan');
 var routes = require('./routes');
@@ -36,8 +39,8 @@ app.use(function (err, req, res, next) {
 connectDb
 .then(() => {
   console.log(chalk.green('Connected to MongoDB'))
-  app.listen(8000, function (){
-    console.log(chalk.blue('Server listening on port 8000'));
+  app.listen(80, function (){
+    console.log(chalk.blue('Server listening on port 80'));
   });
 })
 .catch(err => {
