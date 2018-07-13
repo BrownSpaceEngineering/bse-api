@@ -41,7 +41,7 @@ var transmissionSchema = new Schema({
       type: Number,
       required: true
     },
-    SPF_ST: {
+    FLASH_KILLED: {
       type: Boolean,
       required: true
     },
