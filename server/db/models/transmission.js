@@ -48,7 +48,6 @@ var transmissionSchema = new Schema({
     timestamp: {
       type: Number,
       required: true,
-      unique: true
     },
     callsign: {
       type: String,
