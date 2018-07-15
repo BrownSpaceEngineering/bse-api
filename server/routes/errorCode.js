@@ -50,7 +50,7 @@ router.get('/', function (req, res, next) {
 */
 router.get('/latest', function (req, res, next) {
   try {
-    var query = ErrorCode.find().sort('-created');
+    var query = ErrorCode.find().sort('-timestamp');
 
     if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number
