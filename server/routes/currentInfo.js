@@ -15,7 +15,7 @@ router.get('/', function (req, res, next) {
     if (req.query.end_date) {
       query = query.where({
         recorded: {
-          $lte: new Date(Number(req.query.end_date))  // created property is less than that date
+          $lte: new Date(Number(req.query.end_date))  // recorded property is less than that date
         }
       })
     }
@@ -24,7 +24,7 @@ router.get('/', function (req, res, next) {
     if (req.query.start_date) {
       query = query.where({
         recorded: {
-          $gte: new Date(Number(req.query.start_date))  // created property is greater than that date
+          $gte: new Date(Number(req.query.start_date))  // recorded property is greater than that date
         }
       })
     }
@@ -42,7 +42,7 @@ router.get('/', function (req, res, next) {
           // Copy over only the ones user selected
 
           var filteredCurrentInfo = {
-            created: currentInfo.created,
+            added: currentInfo.added,
             recorded: currentInfo.recorded,
             timestamp: currentInfo.timestamp,
             transmission_cuid: currentInfo.transmission_cuid
@@ -90,7 +90,7 @@ router.get('/latest', function (req, res, next) {
           // Copy over only the ones user selected
 
           var filteredCurrentInfo = {
-            created: currentInfo.created,
+            added: currentInfo.added,
             recorded: currentInfo.recorded,
             timestamp: currentInfo.timestamp,
             transmission_cuid: currentInfo.transmission_cuid

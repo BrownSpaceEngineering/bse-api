@@ -2,8 +2,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var errorCodeSchema = new Schema({
-  // created is when this error was first received in the database
-  created: {
+  // added is when this error was first received in the database
+  added: {
     type: Date,
     default: Date.now,
     required: true

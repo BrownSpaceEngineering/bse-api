@@ -2,8 +2,8 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var dumpSchema = new Schema({
-  // created is when this data was recorded on the satellite itself
-  received: {
+  // added is when this data was recieved in the database
+  added: {
     type: Date,
     default: Date.now,
     required: true
