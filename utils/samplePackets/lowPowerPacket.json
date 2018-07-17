@@ -342,7 +342,7 @@
     ],
     "preamble": {
         "num_errors": 26,
-        "SPF_ST": false,
+        "FLASH_KILLED": false,
         "timestamp": 5740,
         "callsign": "WL9XZE",
         "MRAM_CPY": false,

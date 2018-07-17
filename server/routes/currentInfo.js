@@ -14,7 +14,7 @@ router.get('/', function (req, res, next) {
     // Check if end date property exists
     if (req.query.end_date) {
       query = query.where({
-        created: {
+        recorded: {
           $lte: new Date(Number(req.query.end_date))  // created property is less than that date
         }
       })
@@ -23,13 +23,13 @@ router.get('/', function (req, res, next) {
     // Check if start date property exists
     if (req.query.start_date) {
       query = query.where({
-        created: {
+        recorded: {
           $gte: new Date(Number(req.query.start_date))  // created property is greater than that date
         }
       })
     }
 
-    query = query.sort('+created') // ascending order
+    query = query.sort('+recorded') // ascending order
 
 
     query.exec() // Execute Query
@@ -43,6 +43,8 @@ router.get('/', function (req, res, next) {
 
           var filteredCurrentInfo = {
             created: currentInfo.created,
+            recorded: currentInfo.recorded,
+            timestamp: currentInfo.timestamp,
             transmission_cuid: currentInfo.transmission_cuid
           };
 
@@ -72,7 +74,7 @@ router.get('/', function (req, res, next) {
 */
 router.get('/latest', function (req, res, next) {
   try {
-    var query = CurrentInfo.find().sort('-created');
+    var query = CurrentInfo.find().sort('-recorded');
 
     if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number
@@ -89,6 +91,8 @@ router.get('/latest', function (req, res, next) {
 
           var filteredCurrentInfo = {
             created: currentInfo.created,
+            recorded: currentInfo.recorded,
+            timestamp: currentInfo.timestamp,
             transmission_cuid: currentInfo.transmission_cuid
           };
 

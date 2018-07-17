@@ -9,6 +9,12 @@ var dataSchema = new Schema({
     required: true
   },
 
+  // Recorded corresponds directly to the packet timestamp, but in real time
+  recorded: {
+    type: Date,
+    required: true
+  },
+
   transmission_cuid: {
     type: String,
     required: true

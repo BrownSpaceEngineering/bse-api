@@ -1,7 +1,8 @@
 // Run this while local server is running
 
 // Loads environment variables from our .env file
-require('dotenv').config(); // defaults to .env
+var path = require('path')
+require('dotenv').config({path: path.resolve(process.cwd(), "../.env")}); // defaults to .env
 
 var Chance = require('chance');
 
@@ -12,7 +13,7 @@ var rp = require('request-promise');
 
 var options = {
   method: 'POST',
-  uri: 'http://localhost:8000/equisat/receive',
+  uri: 'http://localhost:3000/equisat/receive',
   json: true // Automatically stringifies the body to JSON
 };
 

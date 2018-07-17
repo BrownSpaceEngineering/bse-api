@@ -2,10 +2,22 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var currentInfoSchema = new Schema({
-  // Created is when the transmission was received AKA when current info was recorded
+  // Created is when the transmission was received
   created: {
     type: Date,
     default: Date.now,
+    required: true
+  },
+
+  // Recorded corresponds directly to the packet timestamp, but in real time
+  recorded: {
+    type: Date,
+    required: true
+  },
+
+  // Satellite timestamp
+  timestamp: {
+    type: Number,
     required: true
   },
 

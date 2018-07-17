@@ -3,7 +3,7 @@ var CurrentInfo = require('../db/models/currentInfo');
 var Data = require('../db/models/data');
 
 function separateArray(arr) {
-	var toReturn = {timestamps: [], values: []}	
+	var toReturn = {timestamps: [], values: []}
 	for (var i = 0; i < arr.length; i++) {
 	    toReturn.timestamps[i] = arr[i].timestamp;
 	    toReturn.values[i] = arr[i].value;
@@ -24,15 +24,15 @@ router.get('/', function (req, res, next) {
 
     // Check if end date property exists
     if (req.query.end_date) {
-      var end_date = Number(req.query.end_date);      
+      var end_date = Number(req.query.end_date);
       curInfoQuery = curInfoQuery.where({
-        created: {
-          $lte: new Date(end_date)  // created property is less than that date
+        recorded: {
+          $lte: new Date(end_date)  // recorded property is less than that date
         }
       });
       dataInfoQuery = dataQuery.where({
-        created: {
-          $lte: new Date(end_date)  // created property is less than that date
+        recorded: {
+          $lte: new Date(end_date)  // recorded property is less than that date
         }
       })
     }
@@ -41,19 +41,19 @@ router.get('/', function (req, res, next) {
     if (req.query.start_date) {
       var start_date = Number(req.query.start_date);
       curInfoQuery = curInfoQuery.where({
-        created: {
-          $gte: new Date(start_date)  // created property is greater than that date
+        recorded: {
+          $gte: new Date(start_date)  // recorded property is greater than that date
         }
       });
       dataQuery = dataQuery.where({
-        created: {
-          $gte: new Date(start_date)  // created property is greater than that date
+        recorded: {
+          $gte: new Date(start_date)  // recorded property is greater than that date
         }
       });
     }
 
-    curInfoQuery = curInfoQuery.sort('+created'); // ascending order
-    dataQuery = dataQuery.sort('+created'); // ascending order
+    curInfoQuery = curInfoQuery.sort('+recorded'); // ascending order
+    dataQuery = dataQuery.sort('+recorded'); // ascending order
 
     Promise.all([
   		curInfoQuery,
@@ -70,7 +70,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in currentInfo) {
 		        		var curEntry = {
-            				timestamp: currentInfo.created.getTime(),
+            				timestamp: currentInfo.recorded.getTime(),
 	            			value: currentInfo[field]
           				};
           				toReturn[field].push(curEntry);
@@ -84,7 +84,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in datum.payload) {
 		        		var curEntry = {
-	            			timestamp: datum.created.getTime(),
+	            			timestamp: datum.recorded.getTime(),
             				value: datum.payload[field]
           				};
           				toReturn[field].push(curEntry);
@@ -100,7 +100,7 @@ router.get('/', function (req, res, next) {
 	    	res.json(toReturn);
         } else {
         	res.statusMessage = "Must specify at least one signal field";
-    		res.status(400).end();        
+    		res.status(400).end();
         }
 	})
     .catch(err => {
@@ -119,17 +119,17 @@ router.get('/', function (req, res, next) {
 */
 router.get('/latest', function (req, res, next) {
   try {
-  	var curInfoQuery = CurrentInfo.find().sort('-created');
-    var dataQuery = Data.find().sort('-created');    
+  	var curInfoQuery = CurrentInfo.find().sort('-recorded');
+    var dataQuery = Data.find().sort('-recorded');
 
     /*if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number
-    }*/    
+    }*/
     Promise.all([
   		curInfoQuery,
   		dataQuery
-	]).then(([ currentInfos, data ]) => {		
-		if (req.query.fields) {			
+	]).then(([ currentInfos, data ]) => {
+		if (req.query.fields) {
     	var toReturn = {};
 
     	var fields = req.query.fields.split(',');
@@ -140,13 +140,13 @@ router.get('/latest', function (req, res, next) {
         	}
         	if (field in currentInfo) {
         		var curEntry = {
-        				timestamp: currentInfo.created.getTime(),
+        				timestamp: currentInfo.recorded.getTime(),
           			value: currentInfo[field]
       				};
       				toReturn[field].push(curEntry);
         	}
         });
-    	});	    	
+    	});
     	data.forEach(datum => {
     		fields.forEach(field => {
         	if (!(field in toReturn)) {
@@ -154,7 +154,7 @@ router.get('/latest', function (req, res, next) {
         	}
         	if (field in datum.payload) {
         		var curEntry = {
-        			timestamp: datum.created.getTime(),
+        			timestamp: datum.recorded.getTime(),
       				value: datum.payload[field]
     				};
     				toReturn[field].push(curEntry);
@@ -172,9 +172,9 @@ router.get('/latest', function (req, res, next) {
 			 toReturn[field] = separateArray(toReturn[field]);
     	}
     	res.json(toReturn);
-    } else {        	        	
+    } else {
       res.statusMessage = "Must specify at least one signal field";
-  		res.status(400).end();        
+  		res.status(400).end();
     }
 	})
     .catch(err => {
@@ -187,22 +187,22 @@ router.get('/latest', function (req, res, next) {
 })
 
 /*
-  Request Query  
+  Request Query
   fields: comma delimited String, default everything
 */
 router.get('/latest_single', function (req, res, next) {
   try {
-    var curInfoQuery = CurrentInfo.find().sort('-created');
-    var dataQuery = Data.find().sort('-created');    
+    var curInfoQuery = CurrentInfo.find().sort('-recorded');
+    var dataQuery = Data.find().sort('-recorded');
 
     /*if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number
-    }*/    
+    }*/
     Promise.all([
       curInfoQuery,
       dataQuery
-  ]).then(([ currentInfos, data ]) => {   
-    if (req.query.fields) {     
+  ]).then(([ currentInfos, data ]) => {
+    if (req.query.fields) {
       var toReturn = {};
 
       var fields = req.query.fields.split(',');
@@ -213,13 +213,13 @@ router.get('/latest_single', function (req, res, next) {
           }
           if (field in currentInfo) {
             var curEntry = {
-              timestamp: currentInfo.created.getTime(),
+              timestamp: currentInfo.recorded.getTime(),
               value: currentInfo[field]
             };
             toReturn[field].push(curEntry);
           }
         });
-      });       
+      });
       data.forEach(datum => {
         fields.forEach(field => {
           if (!(field in toReturn)) {
@@ -227,7 +227,7 @@ router.get('/latest_single', function (req, res, next) {
           }
           if (field in datum.payload) {
             var curEntry = {
-              timestamp: datum.created.getTime(),
+              timestamp: datum.recorded.getTime(),
               value: datum.payload[field]
             };
               toReturn[field].push(curEntry);
@@ -238,13 +238,13 @@ router.get('/latest_single', function (req, res, next) {
       for (var field in toReturn) {
         toReturn[field].sort(function(a,b) {
           return new Date(b.timestamp) - new Date(a.timestamp);
-        });        
+        });
         toReturn[field] = toReturn[field][0];
       }
       res.json(toReturn);
-    } else {                    
+    } else {
       res.statusMessage = "Must specify at least one signal field";
-      res.status(400).end();        
+      res.status(400).end();
     }
   })
     .catch(err => {

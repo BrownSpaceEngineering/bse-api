@@ -9,6 +9,12 @@ var transmissionSchema = new Schema({
     required: true
   },
 
+  // Recorded corresponds directly to the packet timestamp, but in real time
+  recorded: {
+    type: Date,
+    required: true
+  },
+
   // Original Hex Strings Received
   raws: [{
     type: String,
