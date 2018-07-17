@@ -9,8 +9,8 @@ var errorCodeSchema = new Schema({
     required: true
   },
 
-  // Recorded corresponds directly to the error timestamp, but in real time
-  recorded: {
+  // created corresponds directly to the error timestamp, but in real time
+  created: {
     type: Date,
     required: true
   },

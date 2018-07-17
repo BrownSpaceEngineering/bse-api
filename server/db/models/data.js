@@ -2,15 +2,15 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var dataSchema = new Schema({
-  // added is when this data was recorded on the satellite itself
+  // added is when this data was added to the database
   added: {
     type: Date,
     default: Date.now,
     required: true
   },
 
-  // Recorded corresponds directly to the packet timestamp, but in real time
-  recorded: {
+  // created corresponds directly to the packet timestamp, but in real time
+  created: {
     type: Date,
     required: true
   },

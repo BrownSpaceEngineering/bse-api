@@ -12,8 +12,8 @@ router.get('/', function (req, res, next) {
     // Check if end date property exists
     if (req.query.end_date) {
       query = query.where({
-        recorded: {
-          $lte: new Date(Number(req.query.end_date))  // recorded property is less than that date
+        created: {
+          $lte: new Date(Number(req.query.end_date))  // created property is less than that date
         }
       })
     }
@@ -21,13 +21,13 @@ router.get('/', function (req, res, next) {
     // Check if start date property exists
     if (req.query.start_date) {
       query = query.where({
-        recorded: {
-          $gte: new Date(Number(req.query.start_date))  // recorded property is greater than that date
+        created: {
+          $gte: new Date(Number(req.query.start_date))  // created property is greater than that date
         }
       })
     }
 
-    query = query.sort('+recorded') // ascending order
+    query = query.sort('+created') // ascending order
 
     query
     .exec()
@@ -49,7 +49,7 @@ router.get('/', function (req, res, next) {
 */
 router.get('/latest', function (req, res, next) {
   try {
-    var query = Transmission.find().sort('-recorded');
+    var query = Transmission.find().sort('-created');
 
     if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number

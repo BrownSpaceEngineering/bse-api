@@ -26,13 +26,13 @@ router.get('/', function (req, res, next) {
     if (req.query.end_date) {
       var end_date = Number(req.query.end_date);
       curInfoQuery = curInfoQuery.where({
-        recorded: {
-          $lte: new Date(end_date)  // recorded property is less than that date
+        created: {
+          $lte: new Date(end_date)  // created property is less than that date
         }
       });
       dataInfoQuery = dataQuery.where({
-        recorded: {
-          $lte: new Date(end_date)  // recorded property is less than that date
+        created: {
+          $lte: new Date(end_date)  // created property is less than that date
         }
       })
     }
@@ -41,19 +41,19 @@ router.get('/', function (req, res, next) {
     if (req.query.start_date) {
       var start_date = Number(req.query.start_date);
       curInfoQuery = curInfoQuery.where({
-        recorded: {
-          $gte: new Date(start_date)  // recorded property is greater than that date
+        created: {
+          $gte: new Date(start_date)  // created property is greater than that date
         }
       });
       dataQuery = dataQuery.where({
-        recorded: {
-          $gte: new Date(start_date)  // recorded property is greater than that date
+        created: {
+          $gte: new Date(start_date)  // created property is greater than that date
         }
       });
     }
 
-    curInfoQuery = curInfoQuery.sort('+recorded'); // ascending order
-    dataQuery = dataQuery.sort('+recorded'); // ascending order
+    curInfoQuery = curInfoQuery.sort('+created'); // ascending order
+    dataQuery = dataQuery.sort('+created'); // ascending order
 
     Promise.all([
   		curInfoQuery,
@@ -70,7 +70,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in currentInfo) {
 		        		var curEntry = {
-            				timestamp: currentInfo.recorded.getTime(),
+            				timestamp: currentInfo.created.getTime(),
 	            			value: currentInfo[field]
           				};
           				toReturn[field].push(curEntry);
@@ -84,7 +84,7 @@ router.get('/', function (req, res, next) {
 		        	}
 		        	if (field in datum.payload) {
 		        		var curEntry = {
-	            			timestamp: datum.recorded.getTime(),
+	            			timestamp: datum.created.getTime(),
             				value: datum.payload[field]
           				};
           				toReturn[field].push(curEntry);
@@ -119,8 +119,8 @@ router.get('/', function (req, res, next) {
 */
 router.get('/latest', function (req, res, next) {
   try {
-  	var curInfoQuery = CurrentInfo.find().sort('-recorded');
-    var dataQuery = Data.find().sort('-recorded');
+  	var curInfoQuery = CurrentInfo.find().sort('-created');
+    var dataQuery = Data.find().sort('-created');
 
     /*if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number
@@ -140,7 +140,7 @@ router.get('/latest', function (req, res, next) {
         	}
         	if (field in currentInfo) {
         		var curEntry = {
-        				timestamp: currentInfo.recorded.getTime(),
+        				timestamp: currentInfo.created.getTime(),
           			value: currentInfo[field]
       				};
       				toReturn[field].push(curEntry);
@@ -154,7 +154,7 @@ router.get('/latest', function (req, res, next) {
         	}
         	if (field in datum.payload) {
         		var curEntry = {
-        			timestamp: datum.recorded.getTime(),
+        			timestamp: datum.created.getTime(),
       				value: datum.payload[field]
     				};
     				toReturn[field].push(curEntry);
@@ -192,8 +192,8 @@ router.get('/latest', function (req, res, next) {
 */
 router.get('/latest_single', function (req, res, next) {
   try {
-    var curInfoQuery = CurrentInfo.find().sort('-recorded');
-    var dataQuery = Data.find().sort('-recorded');
+    var curInfoQuery = CurrentInfo.find().sort('-created');
+    var dataQuery = Data.find().sort('-created');
 
     /*if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number
@@ -213,7 +213,7 @@ router.get('/latest_single', function (req, res, next) {
           }
           if (field in currentInfo) {
             var curEntry = {
-              timestamp: currentInfo.recorded.getTime(),
+              timestamp: currentInfo.created.getTime(),
               value: currentInfo[field]
             };
             toReturn[field].push(curEntry);
@@ -227,7 +227,7 @@ router.get('/latest_single', function (req, res, next) {
           }
           if (field in datum.payload) {
             var curEntry = {
-              timestamp: datum.recorded.getTime(),
+              timestamp: datum.created.getTime(),
               value: datum.payload[field]
             };
               toReturn[field].push(curEntry);

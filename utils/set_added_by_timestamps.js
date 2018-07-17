@@ -26,11 +26,11 @@ function run() {
     console.log(transmissions.length)
     var updatePromises = transmissions.map(tx => {
       console.log(`Updating packet ${tx._id} with timestamp ${tx.preamble.timestamp}`)
-      console.log("Created (before): " + tx.created)
-      var newCreated = receive.timestampToReceived(tx.preamble.timestamp)
+      console.log("Added (before): " + tx.added)
+      var newAdded = receive.timestampToCreated(tx.preamble.timestamp)
       // TODO: update for all error codes, data, and current data
-      console.log("Created (after ): " + newCreated)
-      return tx.update({created: newCreated})
+      console.log("Added (after ): " + newAdded)
+      return tx.update({added: newAdded})
     })
 
     Promise.all(updatePromises)
