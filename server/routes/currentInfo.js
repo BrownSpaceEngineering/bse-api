@@ -42,7 +42,9 @@ router.get('/', function (req, res, next) {
           // Copy over only the ones user selected
 
           var filteredCurrentInfo = {
+            added: currentInfo.added,
             created: currentInfo.created,
+            timestamp: currentInfo.timestamp,
             transmission_cuid: currentInfo.transmission_cuid
           };
 
@@ -88,7 +90,9 @@ router.get('/latest', function (req, res, next) {
           // Copy over only the ones user selected
 
           var filteredCurrentInfo = {
+            added: currentInfo.added,
             created: currentInfo.created,
+            timestamp: currentInfo.timestamp,
             transmission_cuid: currentInfo.transmission_cuid
           };
 

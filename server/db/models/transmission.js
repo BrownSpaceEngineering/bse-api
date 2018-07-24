@@ -2,10 +2,16 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var transmissionSchema = new Schema({
-  // created is when transmission was received by the server
-  created: {
+  // added is when transmission was received by the server
+  added: {
     type: Date,
     default: Date.now,
+    required: true
+  },
+
+  // created corresponds directly to the packet timestamp, but in real time
+  created: {
+    type: Date,
     required: true
   },
 
@@ -41,14 +47,13 @@ var transmissionSchema = new Schema({
       type: Number,
       required: true
     },
-    SPF_ST: {
+    FLASH_KILLED: {
       type: Boolean,
       required: true
     },
     timestamp: {
       type: Number,
       required: true,
-      unique: true
     },
     callsign: {
       type: String,

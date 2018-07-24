@@ -295,7 +295,7 @@
     ],
     "preamble": {
         "num_errors": 50,
-        "SPF_ST": false,
+        "FLASH_KILLED": false,
         "timestamp": 312832,
         "callsign": "WL9XZE",
         "MRAM_CPY": false,

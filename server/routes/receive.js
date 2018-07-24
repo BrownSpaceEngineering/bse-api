@@ -8,6 +8,12 @@ var Dump = require('../db/models/dump');
 var cuid = require('cuid');
 var chalk = require('chalk');
 
+SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:23:06 UTC")
+/* generates a received date object from a satellite timestamp, based on the 0-date specified above */
+function timestampToCreated(timestamp_s) {
+  return new Date(SATELLITE_FIRST_BOOT_DATE_UTC.getTime() + timestamp_s*1000)
+}
+
 router.post('/', function (req, res, next) {
   try {
 
@@ -61,8 +67,10 @@ router.post('/', function (req, res, next) {
 
           // unique identifier
           var transmissionCuid = cuid();
+          var transmissioncreated = timestampToCreated(transmission.preamble.timestamp);
 
           var newTransmission = new Transmission({
+            created: transmissioncreated,
             raws: [raw],
             cuid: transmissionCuid,
             preamble: transmission.preamble,
@@ -73,6 +81,7 @@ router.post('/', function (req, res, next) {
           // An array of Promises for Error Code database saves
           var newErrorCodePromises = transmission.errors.map(errorCode => {
             var newErrorCode = new ErrorCode(errorCode);
+            newErrorCode.created = timestampToCreated(errorCode.timestamp);
             newErrorCode.transmission_cuid = transmissionCuid;
             return newErrorCode.save();
           });
@@ -87,8 +96,9 @@ router.post('/', function (req, res, next) {
             console.log(chalk.green('Error Codes Saved'));
 
             var newCurrentInfo = new CurrentInfo(transmission.current_info);
+            newCurrentInfo.timestamp = transmission.preamble.timestamp;
+            newCurrentInfo.created = transmissioncreated;
             newCurrentInfo.transmission_cuid = transmissionCuid;
-
             return newCurrentInfo.save();
           })
           .then(savedCurrentInfo => {
@@ -100,6 +110,7 @@ router.post('/', function (req, res, next) {
             if (Array.isArray(transmission.data)) {
               var newDataPromises = transmission.data.map(data => {
                 var newData = new Data({
+                  created: timestampToCreated(data.timestamp),
                   payload: data,
                   data_type: dataType,
                   transmission_cuid: transmissionCuid
@@ -111,6 +122,7 @@ router.post('/', function (req, res, next) {
             } else {
               // Otherwise the transmission.data is an Object and not an array of objects
               var newData = new Data({
+                created: timestampToCreated(transmission.data.timestamp),
                 payload: transmission.data,
                 data_type: dataType,
                 transmission_cuid: transmissionCuid
@@ -127,7 +139,6 @@ router.post('/', function (req, res, next) {
               // It must be an array format
               newTransmission.data = [savedData._id];
             }
-
 
             console.log(chalk.green('Data Saved'));
 

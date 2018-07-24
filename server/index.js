@@ -15,6 +15,8 @@ var routes = require('./routes');
 
 var connectDb = require('./db');
 
+var SERVER_PORT = 3000
+
 // logging middleware
 app.use(morgan('tiny'));
 // body parsing middleware
@@ -39,11 +41,10 @@ app.use(function (err, req, res, next) {
 connectDb
 .then(() => {
   console.log(chalk.green('Connected to MongoDB'))
-  app.listen(80, function (){
-    console.log(chalk.blue('Server listening on port 80'));
+  app.listen(SERVER_PORT, function (){
+    console.log(chalk.blue('Server listening on port ' + SERVER_PORT));
   });
 })
 .catch(err => {
   console.error(err);
 });
-
