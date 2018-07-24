@@ -1,6 +1,6 @@
 var router = require('express').Router();
 var Data = require('../../db/models/data');
-var LOW_POWER = 'LOW_POWER';
+var LOW_POWER = 'LOW POWER';
 
 /*
   Req Query has the following possible parameters

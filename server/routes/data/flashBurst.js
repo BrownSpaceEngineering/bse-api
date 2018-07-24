@@ -1,6 +1,6 @@
 var router = require('express').Router();
 var Data = require('../../db/models/data');
-var FLASH_BURST = 'FLASH_BURST';
+var FLASH_BURST = 'FLASH BURST';
 
 /*
   Req Query has the following possible parameters

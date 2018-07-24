@@ -1,6 +1,6 @@
 var router = require('express').Router();
 var Data = require('../../db/models/data');
-var FLASH_CMP = 'FLASH_CMP';
+var FLASH_CMP = 'FLASH CMP';
 
 /*
   Req Query has the following possible parameters
