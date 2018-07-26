@@ -82,7 +82,7 @@ router.get('/', function (req, res, next) {
 		        	if (!(field in toReturn)) {
 		        		toReturn[field] = [];
 		        	}
-		        	if (field in datum.payload) {
+		        	if (field in datum.payload && timestamp <= (new Date().getTime())) {
 		        		var curEntry = {
 	            			timestamp: datum.created.getTime(),
             				value: datum.payload[field]
@@ -134,13 +134,14 @@ router.get('/latest', function (req, res, next) {
 
     	var fields = req.query.fields.split(',');
     	currentInfos.forEach(currentInfo => {
+        var timestamp = currentInfo.created.getTime();
     		fields.forEach(field => {
         	if (!(field in toReturn)) {
         		toReturn[field] = [];
         	}
-        	if (field in currentInfo) {
+        	if (field in currentInfo && timestamp <= (new Date().getTime())) {
         		var curEntry = {
-        				timestamp: currentInfo.created.getTime(),
+        				timestamp: timestamp,
           			value: currentInfo[field]
       				};
       				toReturn[field].push(curEntry);
@@ -148,13 +149,14 @@ router.get('/latest', function (req, res, next) {
         });
     	});
     	data.forEach(datum => {
+        var timestamp = datum.created.getTime();
     		fields.forEach(field => {
         	if (!(field in toReturn)) {
         		toReturn[field] = [];
         	}
         	if (field in datum.payload) {
         		var curEntry = {
-        			timestamp: datum.created.getTime(),
+        			timestamp: timestamp,
       				value: datum.payload[field]
     				};
     				toReturn[field].push(curEntry);
@@ -207,13 +209,15 @@ router.get('/latest_single', function (req, res, next) {
 
       var fields = req.query.fields.split(',');
       currentInfos.forEach(currentInfo => {
+        var timestamp = currentInfo.created.getTime();
         fields.forEach(field => {
           if (!(field in toReturn)) {
             toReturn[field] = [];
           }
-          if (field in currentInfo) {
+
+          if (field in currentInfo && timestamp <= (new Date().getTime())) {
             var curEntry = {
-              timestamp: currentInfo.created.getTime(),
+              timestamp: timestamp,
               value: currentInfo[field]
             };
             toReturn[field].push(curEntry);
@@ -221,13 +225,14 @@ router.get('/latest_single', function (req, res, next) {
         });
       });
       data.forEach(datum => {
+        var timestamp = datum.created.getTime();
         fields.forEach(field => {
           if (!(field in toReturn)) {
             toReturn[field] = [];
           }
-          if (field in datum.payload) {
+          if (field in datum.payload && timestamp <= (new Date().getTime())) {
             var curEntry = {
-              timestamp: datum.created.getTime(),
+              timestamp: timestamp,
               value: datum.payload[field]
             };
               toReturn[field].push(curEntry);
