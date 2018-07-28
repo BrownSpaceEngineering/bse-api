@@ -64,11 +64,12 @@ router.get('/', function (req, res, next) {
 
 	    	var fields = req.query.fields.split(',');
 	    	currentInfos.forEach(currentInfo => {
+          var timestamp = currentInfo.created.getTime();
 	    		fields.forEach(field => {
 		        	if (!(field in toReturn)) {
 		        		toReturn[field] = [];
 		        	}
-		        	if (field in currentInfo) {
+		        	if (field in currentInfo && timestamp <= (new Date().getTime())) {
 		        		var curEntry = {
             				timestamp: currentInfo.created.getTime(),
 	            			value: currentInfo[field]
@@ -78,6 +79,7 @@ router.get('/', function (req, res, next) {
 	        	});
 	    	});
 	    	data.forEach(datum => {
+          var timestamp = datum.created.getTime();
 	    		fields.forEach(field => {
 		        	if (!(field in toReturn)) {
 		        		toReturn[field] = [];
