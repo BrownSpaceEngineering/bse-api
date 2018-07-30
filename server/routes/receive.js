@@ -7,11 +7,44 @@ var Transmission = require('../db/models/transmission');
 var Dump = require('../db/models/dump');
 var cuid = require('cuid');
 var chalk = require('chalk');
+var request = require('request');
 
 SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:23:06 UTC")
 /* generates a received date object from a satellite timestamp, based on the 0-date specified above */
 function timestampToCreated(timestamp_s) {
   return new Date(SATELLITE_FIRST_BOOT_DATE_UTC.getTime() + timestamp_s*1000)
+}
+
+function postToSlackWebhook(stationName, satState, messageType, cuid) {
+  var webHookURL = "https://hooks.slack.com/services/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";
+  
+  var payload = {
+    text: stationName + " received a packet!",
+    attachments: [
+      {
+        text: "State: " + satState + "\nMessage Type: " + messageType,
+        actions: [
+          {
+            type: "button",
+            text: "View Packet",
+            url: "http://api.brownspace.org/equisat/transmissions/" + cuid
+          }
+        ]
+      }
+    ]
+  };
+  var clientServerOptions = {
+    uri: webHookURL,
+    body: JSON.stringify(payload),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+  request(clientServerOptions, function (error, response) {
+    if (error){console.log(error);}
+    return;
+  });
 }
 
 router.post('/', function (req, res, next) {
@@ -147,8 +180,9 @@ router.post('/', function (req, res, next) {
           })
           .then(savedTransmission => {
             console.log(chalk.green('Transmission Saved'));
+            postToSlackWebhook(station_name, transmission.preamble.satellite_state, transmission.preamble.message_type, transmissionCuid);
             res.end();
-          })
+          })          
           .catch(err => {
             next(err);
           })
@@ -158,8 +192,6 @@ router.post('/', function (req, res, next) {
         next(err);
       })
     }
-
-
   } catch (err) {
     err.status = 400;
     next(err);
