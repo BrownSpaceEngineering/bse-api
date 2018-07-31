@@ -11,45 +11,16 @@ var request = require('request');
 var email = require('emailjs');
 var config = require("../../config.js");
 
+// config
+SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:23:06 UTC");
+TRANSMISSION_ROUTE_PREFIX = "http://api.brownspace.org/equisat/transmissions/"
+
 // connect to email server
 var server = email.server.connect(config.EMAIL_CONFIG);
 
-SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:23:06 UTC");
 /* generates a received date object from a satellite timestamp, based on the 0-date specified above */
 function timestampToCreated(timestamp_s) {
   return new Date(SATELLITE_FIRST_BOOT_DATE_UTC.getTime() + timestamp_s*1000)
-}
-
-function postToSlackWebhook(stationName, satState, messageType, cuid) {
-  var webHookURL = "https://hooks.slack.com/services/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";
-
-  var payload = {
-    text: stationName + " received a packet!",
-    attachments: [
-      {
-        text: "State: " + satState + "\nMessage Type: " + messageType,
-        actions: [
-          {
-            type: "button",
-            text: "View Packet",
-            url: "http://api.brownspace.org/equisat/transmissions/" + cuid
-          }
-        ]
-      }
-    ]
-  };
-  var clientServerOptions = {
-    uri: webHookURL,
-    body: JSON.stringify(payload),
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }
-  request(clientServerOptions, function (error, response) {
-    if (error){console.log(error);}
-    return;
-  });
 }
 
 router.post('/', function (req, res, next) {
@@ -97,7 +68,7 @@ router.post('/', function (req, res, next) {
             console.log(chalk.green('Transmission already exists - appended information'));
             res.status(201).end();
             // send out emails (async) after response
-            publishTransmission(req.body);
+            publishTransmission(req.body, checkTransmission.cuid, duplicate=true);
           })
           .catch(err => {
             next(err);
@@ -187,10 +158,9 @@ router.post('/', function (req, res, next) {
           })
           .then(savedTransmission => {
             console.log(chalk.green('Transmission Saved'));
-            postToSlackWebhook(station_name, transmission.preamble.satellite_state, transmission.preamble.message_type, transmissionCuid);
             res.end();
-            // send out emails (async) after response
-            publishTransmission(req.body);
+            // send out packet notifications after response
+            publishTransmission(req.body, savedTransmission.cuid);
           })
           .catch(err => {
             next(err);
@@ -208,10 +178,17 @@ router.post('/', function (req, res, next) {
 
 })
 
-/* publishes a received transmission to email and webhooks */
-function publishTransmission(body) {
-  if (config.EMAIL_RECIPIENTS != null && config.EMAIL_CONFIG != null) {
+/**
+ * Publishing helpers
+ */
 
+/* publishes a received transmission to email and webhooks */
+function publishTransmission(body, transmissionCuid, duplicate=false) {
+  // post to slack
+  postToSlackWebhook(body, transmissionCuid, duplicate);
+
+  // send emails
+  if (config.EMAIL_RECIPIENTS != null && config.EMAIL_CONFIG != null) {
     // send the digest and full versions of the email to two seperate lists of people
     digest_recipients = [];
     full_recipients = [];
@@ -222,34 +199,37 @@ function publishTransmission(body) {
         full_recipients.push(email);
       }
     }
-
-    sendPacketEmail(body, server, digest_recipients, full=false);
-    sendPacketEmail(body, server, full_recipients, full=true);
+    sendPacketEmail(body, transmissionCuid, duplicate, server, digest_recipients, full=false);
+    sendPacketEmail(body, transmissionCuid, duplicate, server, full_recipients, full=true);
   } else {
     console.log(chalk.red("didn't send email on packet becuase no recipients or no email config specified"));
   }
 }
 
-function sendPacketEmail(body, server, recipients, full=false) {
+function getPacketInfoMessage(body) {
+  var preamble = body.transmission.preamble;
+  var cur = body.transmission.current_info;
+  return `\
+satellite state: ${preamble.satellite_state}
+message type: ${preamble.message_type}
+LiOns (mV): ${cur.L1_REF} ${cur.L2_REF} (active: ${cur.L_REF})
+LiFePos (mV): ${cur.LF1REF} ${cur.LF2REF} ${cur.LF3REF} ${cur.LF4REF}
+PANELREF (mV): ${cur.PANELREF}
+secs since launch: ${preamble.timestamp}
+boot count: ${cur.boot_count}
+memory was corrupted: ${preamble.MRAM_CPY}
+secs to flash: ${cur.time_to_flash}`;
+}
+
+function sendPacketEmail(body, transmissionCuid, duplicate, server, recipients, full=false) {
   if (recipients.length == 0) {
     return;
   }
 
-  var subject = `EQUiStation '${body.station_name}' received a packet!`;
-
+  var subject = `EQUiStation '${body.station_name}' received a ${duplicate ? "duplicate packet" : "packet!"}`;
   // build message with optional full part
-  var preamble = body.transmission.preamble;
-  var cur = body.transmission.current_info;
-  var message = `\
-satellite state:\t${preamble.satellite_state}
-message type:\t\t${preamble.message_type}
-LiOns (mV):\t\t${cur.L1_REF} ${cur.L2_REF} (active: ${cur.L_REF})
-LiFePos (mV):\t\t${cur.LF1REF} ${cur.LF2REF} ${cur.LF3REF} ${cur.LF4REF}
-PANELREF (mV):\t\t${cur.PANELREF}
-secs since launch:\t${preamble.timestamp}
-boot count:\t\t${cur.boot_count}
-memory was corrupted:\t${preamble.MRAM_CPY}
-secs to flash:\t\t${cur.time_to_flash}`;
+  var message = getPacketInfoMessage(body);
+  message = message + `\n\nfull packet: ${TRANSMISSION_ROUTE_PREFIX + transmissionCuid}`
 
   if (full) {
     message = message + `
@@ -275,6 +255,39 @@ secs to flash:\t\t${cur.time_to_flash}`;
     } else {
       console.log(chalk.green("Email notification success: " + JSON.stringify(message)));
     }
+  });
+}
+
+function postToSlackWebhook(body, cuid, duplicate) {
+  var stationName = body.station_name;
+  var subject = stationName + (duplicate ? " received a duplicate packet" : " received a packet!");
+  var message = duplicate ? "" : getPacketInfoMessage(body);
+  var payload = {
+    text: subject,
+    attachments: [
+      {
+        text: message,
+        actions: [
+          {
+            type: "button",
+            text: "View Packet",
+            url: TRANSMISSION_ROUTE_PREFIX + cuid
+          }
+        ]
+      }
+    ]
+  };
+  var clientServerOptions = {
+    uri: config.SLACK_WEBHOOK_URL,
+    body: JSON.stringify(payload),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+  request(clientServerOptions, function (error, response) {
+    if (error){console.log(chalk.red(error));}
+    return;
   });
 }
 
