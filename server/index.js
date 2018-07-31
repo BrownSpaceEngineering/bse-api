@@ -14,8 +14,7 @@ var morgan = require('morgan');
 var routes = require('./routes');
 
 var connectDb = require('./db');
-
-var SERVER_PORT = 3000
+var config = require("../config.js");
 
 // logging middleware
 app.use(morgan('tiny'));
@@ -41,8 +40,8 @@ app.use(function (err, req, res, next) {
 connectDb
 .then(() => {
   console.log(chalk.green('Connected to MongoDB'))
-  app.listen(SERVER_PORT, function (){
-    console.log(chalk.blue('Server listening on port ' + SERVER_PORT));
+  app.listen(config.SERVER_PORT, function (){
+    console.log(chalk.blue('Server listening on port ' + config.SERVER_PORT));
   });
 })
 .catch(err => {

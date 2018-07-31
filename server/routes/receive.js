@@ -7,8 +7,14 @@ var Transmission = require('../db/models/transmission');
 var Dump = require('../db/models/dump');
 var cuid = require('cuid');
 var chalk = require('chalk');
+var email = require('emailjs');
+var config = require("../../config.js");
+
+// connect to email server
+var server = email.server.connect(config.EMAIL_CONFIG);
 
 SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:23:06 UTC")
+
 /* generates a received date object from a satellite timestamp, based on the 0-date specified above */
 function timestampToCreated(timestamp_s) {
   return new Date(SATELLITE_FIRST_BOOT_DATE_UTC.getTime() + timestamp_s*1000)
@@ -58,6 +64,8 @@ router.post('/', function (req, res, next) {
           .then(() => {
             console.log(chalk.green('Transmission already exists - appended information'));
             res.status(201).end();
+            // send out emails (async) after response
+            publishTransmission(req.body);
           })
           .catch(err => {
             next(err);
@@ -148,6 +156,8 @@ router.post('/', function (req, res, next) {
           .then(savedTransmission => {
             console.log(chalk.green('Transmission Saved'));
             res.end();
+            // send out emails (async) after response
+            publishTransmission(req.body);
           })
           .catch(err => {
             next(err);
@@ -166,5 +176,76 @@ router.post('/', function (req, res, next) {
   }
 
 })
+
+/* publishes a received transmission to email and webhooks */
+function publishTransmission(body) {
+  if (config.EMAIL_RECIPIENTS != null && config.EMAIL_CONFIG != null) {
+
+
+    // send the digest and full versions of the email to two seperate lists of people
+    digest_recipients = [];
+    full_recipients = [];
+    for (email in config.EMAIL_RECIPIENTS) {
+      if (config.EMAIL_RECIPIENTS[email] == "digest") {
+        digest_recipients.push(email);
+      } else { // full or incorrect
+        full_recipients.push(email);
+      }
+    }
+
+    sendPacketEmail(body, server, digest_recipients, full=false);
+    sendPacketEmail(body, server, full_recipients, full=true);
+  } else {
+    console.log(chalk.red("didn't send email on packet becuase no recipients or no email config specified"));
+  }
+}
+
+function sendPacketEmail(body, server, recipients, full=false) {
+  if (recipients.length == 0) {
+    return;
+  }
+
+  var subject = `EQUiStation '${body.station_name}' received a packet!`;
+
+  // build message with optional full part
+  var preamble = body.transmission.preamble;
+  var cur = body.transmission.current_info;
+  var message = `\
+satellite state:\t${preamble.satellite_state}
+message type:\t\t${preamble.message_type}
+LiOns (mV):\t\t${cur.L1_REF} ${cur.L2_REF} (active: ${cur.L_REF})
+LiFePos (mV):\t\t${cur.LF1REF} ${cur.LF2REF} ${cur.LF3REF} ${cur.LF4REF}
+PANELREF (mV):\t\t${cur.PANELREF}
+secs since launch:\t${preamble.timestamp}
+boot count:\t\t${cur.boot_count}
+memory was corrupted:\t${preamble.MRAM_CPY}
+secs to flash:\t\t${cur.time_to_flash}`;
+
+  if (full) {
+    message = message + `
+
+      raw:
+      ${body.raw}
+
+      corrected:
+      ${body.corrected}
+
+      parsed:
+      ${JSON.stringify(body.transmission)}`
+  }
+
+  server.send({
+    from: config.FROM_ADDRESS,
+    to: recipients.join(","),
+    subject: subject,
+    text: message
+  }, function(err, message) {
+    if (err) {
+      console.log(chalk.red("Email notification error: " + err));
+    } else {
+      console.log(chalk.green("Email notification success: " + JSON.stringify(message)));
+    }
+  });
+}
 
 module.exports = router;

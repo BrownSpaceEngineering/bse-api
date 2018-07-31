@@ -2,3 +2,4 @@
 .env
 /data/
 package-lock.json
+config.js
