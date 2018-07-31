@@ -234,14 +234,14 @@ function sendPacketEmail(body, transmissionCuid, duplicate, server, recipients, 
   if (full) {
     message = message + `
 
-      raw:
-      ${body.raw}
+raw:
+${body.raw}
 
-      corrected:
-      ${body.corrected}
+corrected:
+${body.corrected}
 
-      parsed:
-      ${JSON.stringify(body.transmission)}`
+parsed:
+${JSON.stringify(body.transmission, null, 4)}`
   }
 
   server.send({
