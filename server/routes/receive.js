@@ -164,7 +164,7 @@ router.post('/', function (req, res, next) {
             return newTransmission.save();
           })
           .then(savedTransmission => {
-            console.log(chalk.green('Transmission Saved'));
+            console.log(chalk.green(`Transmission Saved (cuid: ${savedTransmission.cuid})`));
             res.end();
             // send out packet notifications after response
             publishTransmission(req.body, savedTransmission.cuid);
