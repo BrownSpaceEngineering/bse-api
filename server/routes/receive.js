@@ -12,15 +12,21 @@ var email = require('emailjs');
 var config = require("../../config.js");
 
 // config
-SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:23:06 UTC");
+SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:20:30 UTC");
+SATELLITE_CLOCK_SPEED_FACTOR = 1.00464518434817
 TRANSMISSION_ROUTE_PREFIX = "http://api.brownspace.org/equisat/transmissions/"
 
 // connect to email server
 var server = email.server.connect(config.EMAIL_CONFIG);
 
 /* generates a received date object from a satellite timestamp, based on the 0-date specified above */
-function timestampToCreated(timestamp_s) {
-  return new Date(SATELLITE_FIRST_BOOT_DATE_UTC.getTime() + timestamp_s*1000)
+function timestampToCreated(timestamp_s, added) {
+  newCreated = new Date(SATELLITE_FIRST_BOOT_DATE_UTC.getTime() + SATELLITE_CLOCK_SPEED_FACTOR*timestamp_s*1000)
+  // don't update to newCreated if greater than added, just used added
+  if (newCreated.getTime() > added) {
+    newCreated = added;
+  }
+  return newCreated;
 }
 
 router.post('/', function (req, res, next) {
@@ -46,6 +52,7 @@ router.post('/', function (req, res, next) {
 
       // convert raw here
       // for testing, json is directly on the req.body
+      var added = Date.now()
       var transmission = req.body.transmission;
 
       var station_name = req.body.station_name ? req.body.station_name : 'unknown' // if station_name exists on the body, otherwise use unknown
@@ -78,7 +85,7 @@ router.post('/', function (req, res, next) {
 
           // unique identifier
           var transmissionCuid = cuid();
-          var transmissioncreated = timestampToCreated(transmission.preamble.timestamp);
+          var transmissioncreated = timestampToCreated(transmission.preamble.timestamp, added);
 
           var newTransmission = new Transmission({
             created: transmissioncreated,
@@ -92,7 +99,7 @@ router.post('/', function (req, res, next) {
           // An array of Promises for Error Code database saves
           var newErrorCodePromises = transmission.errors.map(errorCode => {
             var newErrorCode = new ErrorCode(errorCode);
-            newErrorCode.created = timestampToCreated(errorCode.timestamp);
+            newErrorCode.created = timestampToCreated(errorCode.timestamp, added);
             newErrorCode.transmission_cuid = transmissionCuid;
             return newErrorCode.save();
           });
@@ -121,7 +128,7 @@ router.post('/', function (req, res, next) {
             if (Array.isArray(transmission.data)) {
               var newDataPromises = transmission.data.map(data => {
                 var newData = new Data({
-                  created: timestampToCreated(data.timestamp),
+                  created: timestampToCreated(data.timestamp, added),
                   payload: data,
                   data_type: dataType,
                   transmission_cuid: transmissionCuid
@@ -133,7 +140,7 @@ router.post('/', function (req, res, next) {
             } else {
               // Otherwise the transmission.data is an Object and not an array of objects
               var newData = new Data({
-                created: timestampToCreated(transmission.data.timestamp),
+                created: timestampToCreated(transmission.data.timestamp, added),
                 payload: transmission.data,
                 data_type: dataType,
                 transmission_cuid: transmissionCuid
@@ -292,3 +299,4 @@ function postToSlackWebhook(body, cuid, duplicate) {
 }
 
 module.exports = router;
+module.exports["timestampToCreated"] = timestampToCreated
