@@ -32,7 +32,6 @@ var currentInfoSchema = new Schema({
     type: Number,
     required: true
   },
-
   L1_TEMP: {
     type: Number,
     required: true
@@ -148,7 +147,38 @@ var currentInfoSchema = new Schema({
   L2_RUN_CHG: {
     type: Boolean,
     required: true
+  },
+
+  pass_data: [{
+    type: Schema.Types.ObjectId, ref: 'pass_data'
+  }],
+
+  doppler_corrections: [{
+    type: Schema.Types.ObjectId, ref: 'doppler_corrections'
+  }],
+
+  doppler_correction: {
+    type: Number,
+    required: false
+  },
+
+  latest_rssi: {
+    type: Number,
+    required: false
+  },
+
+  latest_packet_rssi: {
+    type: Number,
+    required: false
+  },
+
+  rx_since_pass_start: {
+    type: Number,
+    required: false
   }
+
+
+
 });
 
 module.exports = mongoose.model('CurrentInfo', currentInfoSchema);
