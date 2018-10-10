@@ -94,12 +94,12 @@ router.post('/', function (req, res, next) {
             preamble: transmission.preamble,
             corrected: corrected,
             station_names: [station_name],
-            pass_data: transmission.body.pass_data,
-            doppler_corrections: transmission.body.doppler_corrections,
-            doppler_correction: transmission.body.doppler_correction,
-            latest_rssi: transmission.body.latest_rssi,
-            latest_packet_rssi: transmission.body.latest_packet_rssi,
-            rx_since_pass_start: transmission.body.rx_since_pass_start
+            pass_data: req.body.pass_data,
+            doppler_corrections: req.body.doppler_corrections,
+            doppler_correction: req.body.doppler_correction,
+            latest_rssi: req.body.latest_rssi,
+            latest_packet_rssi: req.body.latest_packet_rssi,
+            rx_since_pass_start: req.body.rx_since_pass_start
           });
 
           // An array of Promises for Error Code database saves
