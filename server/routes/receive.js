@@ -86,6 +86,11 @@ router.post('/', function (req, res, next) {
           // unique identifier
           var transmissionCuid = cuid();
           var transmissioncreated = timestampToCreated(transmission.preamble.timestamp, added);
+          var doppler_corrections = req.body.doppler_corrections ? req.body.doppler_corrections : null
+          var doppler_corrections = req.body.doppler_correction ? req.body.doppler_correction : null
+          var latest_rssi = req.body.latest_rssi ? req.body.latest_rssi : null
+          var latest_packet_rssi = req.body.latest_packet_rssi ? req.body.latest_packet_rssi : null
+          var rx_since_pass_start = req.body.rx_since_pass_start ? req.body.rx_since_pass_start : null
 
           var newTransmission = new Transmission({
             created: transmissioncreated,
@@ -95,11 +100,11 @@ router.post('/', function (req, res, next) {
             corrected: corrected,
             station_names: [station_name],
             pass_data: req.body.pass_data,
-            doppler_corrections: req.body.doppler_corrections,
-            doppler_correction: req.body.doppler_correction,
-            latest_rssi: req.body.latest_rssi,
-            latest_packet_rssi: req.body.latest_packet_rssi,
-            rx_since_pass_start: req.body.rx_since_pass_start
+            doppler_corrections: doppler_corrections,
+            doppler_correction: doppler_correction,
+            latest_rssi: latest_rssi,
+            latest_packet_rssi: latest_packet_rssi,
+            rx_since_pass_start: rx_since_pass_start
           });
 
           // An array of Promises for Error Code database saves
