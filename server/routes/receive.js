@@ -57,6 +57,8 @@ router.post('/', function (req, res, next) {
 
       var station_name = req.body.station_name ? req.body.station_name : 'unknown' // if station_name exists on the body, otherwise use unknown
 
+console.log(req.body.doppler_correction);
+
       // First find if the transmission has been received before
       Transmission.findOne()
       .where('corrected').equals(corrected)
@@ -86,11 +88,11 @@ router.post('/', function (req, res, next) {
           // unique identifier
           var transmissionCuid = cuid();
           var transmissioncreated = timestampToCreated(transmission.preamble.timestamp, added);
-          var doppler_corrections = req.body.doppler_corrections ? req.body.doppler_corrections : null
-          var doppler_corrections = req.body.doppler_correction ? req.body.doppler_correction : null
-          var latest_rssi = req.body.latest_rssi ? req.body.latest_rssi : null
-          var latest_packet_rssi = req.body.latest_packet_rssi ? req.body.latest_packet_rssi : null
-          var rx_since_pass_start = req.body.rx_since_pass_start ? req.body.rx_since_pass_start : null
+          var doppler_corrections = req.body.doppler_corrections !== undefined ? req.body.doppler_corrections : null
+          var doppler_correction = req.body.doppler_correction !== undefined ? req.body.doppler_correction : null
+          var latest_rssi = req.body.latest_rssi !== undefined ? req.body.latest_rssi : null
+          var latest_packet_rssi = req.body.latest_packet_rssi !== undefined ? req.body.latest_packet_rssi : null
+          var rx_since_pass_start = req.body.rx_since_pass_start !== undefined ? req.body.rx_since_pass_start : null
 
           var newTransmission = new Transmission({
             created: transmissioncreated,

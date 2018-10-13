@@ -77,12 +77,14 @@ var transmissionSchema = new Schema({
     }
   },
 
-  pass_data: [{
-    type: Schema.Types.ObjectId, ref: 'pass_data'
-  }],
+  pass_data: {
+    type: Schema.Types.Mixed,
+    required: false
+  },
 
   doppler_corrections: [{
-    type: Schema.Types.ObjectId, ref: 'doppler_corrections'
+    type: Schema.Types.Mixed,
+    required: false
   }],
 
   doppler_correction: {
