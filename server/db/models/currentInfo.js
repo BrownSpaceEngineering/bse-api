@@ -32,7 +32,6 @@ var currentInfoSchema = new Schema({
     type: Number,
     required: true
   },
-
   L1_TEMP: {
     type: Number,
     required: true
@@ -149,6 +148,7 @@ var currentInfoSchema = new Schema({
     type: Boolean,
     required: true
   }
+
 });
 
 module.exports = mongoose.model('CurrentInfo', currentInfoSchema);
