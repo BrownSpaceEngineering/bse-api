@@ -96,12 +96,30 @@ router.post('/', function (req, res, next) {
             station_names: [station_name]
           });
 
-          // An array of Promises for Error Code database saves
+          // add or update each error code
           var newErrorCodePromises = transmission.errors.map(errorCode => {
-            var newErrorCode = new ErrorCode(errorCode);
-            newErrorCode.created = timestampToCreated(errorCode.timestamp, added);
-            newErrorCode.transmission_cuid = transmissionCuid;
-            return newErrorCode.save();
+            return ErrorCode.findOne()
+            .where('data_hash').equals(errorCode.data_hash)
+            .exec()
+            .then(checkErrorCode => {
+              // if error code with exact data already exists, just add a link back to the transmission
+              if (checkErrorCode) {
+                // update, save, and then return promise to updated error code
+                checkErrorCode.transmission_cuids.push(transmissionCuid);
+                return checkErrorCode.save()
+                .then((newErrorCode) => {
+                  console.log(chalk.green('Error code already exists - appended information'));
+                  return newErrorCode;
+                });
+
+              } else {
+                // otherwise, create new one and save
+                var newErrorCode = new ErrorCode(errorCode);
+                newErrorCode.created = timestampToCreated(newErrorCode.timestamp, added);
+                newErrorCode.transmission_cuids = [transmissionCuid];
+                return newErrorCode.save();
+              }
+            })
           });
 
           Promise.all(newErrorCodePromises)
@@ -124,29 +142,47 @@ router.post('/', function (req, res, next) {
 
             console.log(chalk.green('Current Info Saved'));
 
-            // If the Data is an Array Value
+            // create function to submit data secton to handle list/object formats
+            var saveData = (data) => {
+              return Data.findOne()
+              .where('data_hash').equals(data.data_hash)
+              .exec()
+              .then(checkData => {
+                // if data with exact data hash already exists, just add a link back to the transmission
+                if (checkData) {
+                  // update, save, and then return promise to updated data
+                  checkData.transmission_cuids.push(transmissionCuid);
+                  return checkData.save()
+                  .then((newData) => {
+                    console.log(chalk.green('Data element already exists - appended information'));
+                    return newData;
+                  });
+
+                } else {
+                  // otherwise, create new one and save
+                  var newData = new Data({
+                    created: timestampToCreated(data.timestamp, added),
+                    payload: data,
+                    data_type: dataType,
+                    transmission_cuids: [transmissionCuid]
+                  });
+                  return newData.save();
+                }
+              });
+            }
+
+            // If the Data is an Array Value, collect all the save promises
             if (Array.isArray(transmission.data)) {
               var newDataPromises = transmission.data.map(data => {
-                var newData = new Data({
-                  created: timestampToCreated(data.timestamp, added),
-                  payload: data,
-                  data_type: dataType,
-                  transmission_cuid: transmissionCuid
-                });
-                return newData.save();
+                return saveData(data);
               })
-
               return Promise.all(newDataPromises);
+
             } else {
               // Otherwise the transmission.data is an Object and not an array of objects
-              var newData = new Data({
-                created: timestampToCreated(transmission.data.timestamp, added),
-                payload: transmission.data,
-                data_type: dataType,
-                transmission_cuid: transmissionCuid
-              });
-              return newData.save();
+              return saveData(transmission.data);
             }
+
           })
           .then(savedData => {
             if (Array.isArray(savedData)) {

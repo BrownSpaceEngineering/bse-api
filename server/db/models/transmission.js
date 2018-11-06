@@ -21,7 +21,7 @@ var transmissionSchema = new Schema({
     required: true
   }],
 
-  // Post Reed Solomon decoding string for parsing
+  // Post Reed Solomon decoding string for parsing; unique key
   corrected: {
     type: String,
     required: true,

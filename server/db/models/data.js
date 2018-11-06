@@ -15,9 +15,16 @@ var dataSchema = new Schema({
     required: true
   },
 
-  transmission_cuid: {
+  transmission_cuids: [{
     type: String,
     required: true
+  }],
+
+  // raw data in hex representing "hash" of data; unique key
+  data_hash: {
+    type: String,
+    required: true,
+    unique: true
   },
 
   // Flash Burst Data or Idle State Data, etc.
