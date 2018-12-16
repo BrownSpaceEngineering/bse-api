@@ -130,12 +130,12 @@ function postToSlackWebhook(body, cuid, duplicate) {
 function postTweet(body) {
   var tweet = getTweetMessage(body);
   console.log(tweet);
-  // T.post('statuses/update', { status: tweet }, function(err, data, response) {
-  //   if (err) {
-  //     console.log(chalk.red(`error posting tweet: ${err}`));
-  //     console.log(chalk.red(response));
-  //   }
-  // });
+  T.post('statuses/update', { status: tweet }, function(err, data, response) {
+     if (err) {
+       console.log(chalk.red(`error posting tweet: ${err}`));
+       console.log(chalk.red(response));
+     }
+   });
 }
 
 var MAX_STATION_NAME_LEN = 30;
