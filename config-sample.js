@@ -12,3 +12,11 @@ exports.EMAIL_CONFIG = {
   ssl: true
 };
 exports.FROM_ADDRESS = "myuser@gmail.com";
+exports.TWIT_CONFIG = {
+  consumer_key:         '...',
+  consumer_secret:      '...',
+  access_token:         '...',
+  access_token_secret:  '...',
+  timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests.
+  strictSSL:            false,    // optional - requires SSL certificates to be valid.
+};

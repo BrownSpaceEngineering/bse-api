@@ -23,6 +23,7 @@
     "morgan": "^1.9.0",
     "path": "^0.12.7",
     "request": "^2.85.0",
-    "request-promise": "^4.2.2"
+    "request-promise": "^4.2.2",
+    "twit": "^2.2.11"
   }
 }
