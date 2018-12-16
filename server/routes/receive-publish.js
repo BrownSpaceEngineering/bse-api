@@ -16,7 +16,7 @@ TRANSMISSION_ROUTE_PREFIX = "http://api.brownspace.org/equisat/transmissions/"
 /* publishes a received transmission to email and webhooks */
 function publishTransmission(body, transmissionCuid, duplicate=false) {
   // post to slack
-  // postToSlackWebhook(body, transmissionCuid, duplicate);
+  postToSlackWebhook(body, transmissionCuid, duplicate);
 
   // sent Tweet
   if (!duplicate) {
@@ -130,78 +130,41 @@ function postToSlackWebhook(body, cuid, duplicate) {
 function postTweet(body) {
   var tweet = getTweetMessage(body);
   console.log(tweet);
-  T.post('statuses/update', { status: tweet }, function(err, data, response) {
-    if (err) {
-      console.log(chalk.red(`error posting tweet: ${err}`));
-      console.log(chalk.red(response));
-    }
-  });
+  // T.post('statuses/update', { status: tweet }, function(err, data, response) {
+  //   if (err) {
+  //     console.log(chalk.red(`error posting tweet: ${err}`));
+  //     console.log(chalk.red(response));
+  //   }
+  // });
 }
+
+var MAX_STATION_NAME_LEN = 30;
+var EXPECTED_TIME_TO_API_S = 2;
 
 function getTweetMessage(body) {
   var preamble = body.transmission.preamble;
   var cur = body.transmission.current_info;
-  var flashInfo = cur.time_to_flash == 255 ? "not flashing" : cur.time_to_flash + "s to next flash";
-  var lionInfo = `${lionVoltageToPercentage(cur.L1_REF/1000.0)}% ${lionVoltageToPercentage(cur.L2_REF/1000.0)}% (${cur.L1_TEMP}°C ${cur.L2_TEMP}°C)`;
-  var lifepoInfo = `${lifepo4VoltageToPercentage(cur.LF1REF/1000.0)}% ${lifepo4VoltageToPercentage(cur.LF2REF/1000.0)}% ${lifepo4VoltageToPercentage(cur.LF3REF/1000.0)}% ${lifepo4VoltageToPercentage(cur.LF4REF/1000.0)}%`;
+  var stationName = body.station_name.length < MAX_STATION_NAME_LEN ? body.station_name : body.station_name.slice(0, MAX_STATION_NAME_LEN);
+  var flashInfo = cur.time_to_flash == 255 ? "not flashing" : `FLASHING in ${cur.time_to_flash-EXPECTED_TIME_TO_API_S}s`;
+  var l1ref = (cur.L1_REF/1000.0).toFixed(2);
+  var l2ref = (cur.L2_REF/1000.0).toFixed(2);
+  var lionInfo = `${l1ref}V ${l2ref}V (${cur.L1_TEMP}°C ${cur.L2_TEMP}°C)`;
+  var lf1ref = (cur.LF1REF/1000.0).toFixed(2);
+  var lf2ref = (cur.LF2REF/1000.0).toFixed(2);
+  var lf3ref = (cur.LF3REF/1000.0).toFixed(2);
+  var lf4ref = (cur.LF4REF/1000.0).toFixed(2);
+  var lifepoInfo = `${lf1ref}V ${lf2ref}V ${lf3ref}V ${lf4ref}V`;
   var sunInfo = cur.PANELREF > 5500 ? "in sunlight" : "in darkness";
 
   // Example:
   // EQUiSat update: in IDLE FLASH mode | 30s to next flash | LiOn batteries: 81% 82% (23°C 25°C) | LiFePO batteries: 90% 50% 87% 90% | in sunlight | 23 reboots | equisat.brownspace.org/data
-  return `EQUiSat update: in ${preamble.satellite_state} mode \
+  return `EQUiSat update from ${stationName}: in ${preamble.satellite_state} mode \
 | ${flashInfo} \
 | LiOn batteries: ${lionInfo} \
 | LiFePO batteries: ${lifepoInfo} \
 | ${sunInfo} \
 | ${cur.boot_count} reboots \
 | equisat.brownspace.org/data`;
-}
-
-// voltage to percent converters
-// copied from https://github.com/BrownSpaceEngineering/mobile-app/blob/25f4fbae006a2210017bd7e0fdcd8cd2a64a5e01/src/BatteryCircle.js#L54
-
-function lionVoltageToPercentage(voltage) {
-  //piecewise curve fit
-  var percentage = 0.;
-  if (voltage >= 3.986) {
-    percentage = 495918.838867187*Math.pow(voltage, 6) - 12131731.9612119*Math.pow(voltage, 5) + 123643244.339164*Math.pow(voltage, 4) - 671989441.456614*Math.pow(voltage, 3) + 2054101328.6697*Math.pow(voltage, 2) - 3348296376.10735*voltage + 2273828011.07252;
-  } else if (voltage < 3.986 && voltage >= 3.5985) {
-    percentage = 14248.3732614517*Math.pow(voltage, 5) - 273888.006152098*Math.pow(voltage, 4) + 2105903.52769594*Math.pow(voltage, 3) - 8096118.96287537*Math.pow(voltage, 2) + 15563096.2967489*voltage - 11967212.7013982;
-  } else if (voltage < 3.5985 && voltage >= 2.8) {
-    percentage = 2942.12034556269*Math.pow(voltage, 5) - 48558.2340786669*Math.pow(voltage, 4) + 320492.380456582*Math.pow(voltage, 3) - 1057284.439237*Math.pow(voltage, 2) + 1743212.13657029*voltage - 1149073.13151426;
-  } else {
-    percentage = 0;
-  }
-  if (percentage < 0) {
-    percentage = 0;
-  }
-  if (percentage > 100) {
-    percentage = 100;
-  }
-  percentage = Math.round(percentage);
-  return percentage;
-}
-
-function lifepo4VoltageToPercentage(voltage) {
-  //piecewise curve fit
-  var percentage = 0.;
-  if (voltage >= 3.299) {
-    percentage = 7481.35161972045*Math.pow(voltage, 5) - 129698.307311745*Math.pow(voltage, 4) + 899320.30659425*Math.pow(voltage, 3) - 3117698.8919505*Math.pow(voltage, 2) + 5403781.60634651*voltage - 3746176.3794266;
-  } else if (voltage < 3.299 && voltage >= 3.168625) {
-    percentage = -5538027.91287231*Math.pow(voltage, 5) + 89768047.5291653*Math.pow(voltage, 4) - 582052268.16249*Math.pow(voltage, 3) + 1887056369.17257*Math.pow(voltage, 2) - 3059070288.85044*voltage + 1983648268.20567;
-  } else if (voltage < 3.168625 && voltage >= 2.4) {
-    percentage = 9361.00030899047*Math.pow(voltage, 6) - 155484.297233582*Math.pow(voltage, 5) + 1074915.58123016*Math.pow(voltage, 4) - 3958921.17254791*Math.pow(voltage, 3) + 8192152.17593754*Math.pow(voltage, 2) - 9030097.66266999*voltage + 4142159.89895692;
-  } else {
-    percentage = 0;
-  }
-  if (percentage < 0) {
-    percentage = 0;
-  }
-  if (percentage > 100) {
-    percentage = 100;
-  }
-  percentage = Math.round(percentage);
-  return percentage;
 }
 
 module.exports = publishTransmission;
