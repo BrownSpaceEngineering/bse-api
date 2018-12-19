@@ -9,18 +9,22 @@ var chalk = require('chalk');
 var server = email.server.connect(config.EMAIL_CONFIG);
 
 // twitter posting setup
-var T = new Twit(config.TWIT_CONFIG);
+if (config.TWIT_CONFIG == null) {
+  var T = null;
+} else {
+  var T = new Twit(config.TWIT_CONFIG);
+}
 
 TRANSMISSION_ROUTE_PREFIX = "http://api.brownspace.org/equisat/transmissions/"
 
 /* publishes a received transmission to email and webhooks */
-function publishTransmission(body, transmissionCuid, duplicate=false) {
+function publishTransmission(body, transmission, transmissionCuid, duplicate=false) {
   // post to slack
-  postToSlackWebhook(body, transmissionCuid, duplicate);
+  postToSlackWebhook(body, transmission, transmissionCuid, duplicate);
 
   // sent Tweet
-  if (!duplicate) {
-    postTweet(body);
+  if (!duplicate && T !== null) {
+    postTweet(body, transmission);
   }
 
   // send emails
@@ -35,16 +39,16 @@ function publishTransmission(body, transmissionCuid, duplicate=false) {
         full_recipients.push(email);
       }
     }
-    sendPacketEmail(body, transmissionCuid, duplicate, server, digest_recipients, full=false);
-    sendPacketEmail(body, transmissionCuid, duplicate, server, full_recipients, full=true);
+    sendPacketEmail(body, transmission, transmissionCuid, duplicate, server, digest_recipients, full=false);
+    sendPacketEmail(body, transmission, transmissionCuid, duplicate, server, full_recipients, full=true);
   } else {
     console.log(chalk.red("didn't send email on packet becuase no recipients or no email config specified"));
   }
 }
 
-function getPacketInfoMessage(body) {
-  var preamble = body.transmission.preamble;
-  var cur = body.transmission.current_info;
+function getPacketInfoMessage(body, transmission) {
+  var preamble = transmission.preamble;
+  var cur = transmission.current_info;
   return `\
 satellite state: ${preamble.satellite_state}
 message type: ${preamble.message_type}
@@ -57,14 +61,14 @@ memory was corrupted: ${preamble.MRAM_CPY}
 secs to flash: ${cur.time_to_flash}`;
 }
 
-function sendPacketEmail(body, transmissionCuid, duplicate, server, recipients, full=false) {
+function sendPacketEmail(body, transmission, transmissionCuid, duplicate, server, recipients, full=false) {
   if (recipients.length == 0) {
     return;
   }
 
   var subject = `EQUiStation '${body.station_name}' received a ${duplicate ? "duplicate packet" : "packet!"}`;
   // build message with optional full part
-  var message = getPacketInfoMessage(body);
+  var message = getPacketInfoMessage(body, transmission);
   message = message + `\n\nfull packet: ${TRANSMISSION_ROUTE_PREFIX + transmissionCuid}`
 
   if (full) {
@@ -77,7 +81,7 @@ corrected:
 ${body.corrected}
 
 parsed:
-${JSON.stringify(body.transmission, null, 4)}`
+${JSON.stringify(transmission, null, 4)}`
   }
 
   server.send({
@@ -94,10 +98,10 @@ ${JSON.stringify(body.transmission, null, 4)}`
   });
 }
 
-function postToSlackWebhook(body, cuid, duplicate) {
+function postToSlackWebhook(body, transmission, cuid, duplicate) {
   var stationName = body.station_name;
   var subject = stationName + (duplicate ? " received a duplicate packet" : " received a packet!");
-  var message = duplicate ? "" : getPacketInfoMessage(body);
+  var message = duplicate ? "" : getPacketInfoMessage(body, transmission);
   var payload = {
     text: subject,
     attachments: [
@@ -127,8 +131,8 @@ function postToSlackWebhook(body, cuid, duplicate) {
   });
 }
 
-function postTweet(body) {
-  var tweet = getTweetMessage(body);
+function postTweet(body, transmission) {
+  var tweet = getTweetMessage(body, transmission);
   console.log(tweet);
   T.post('statuses/update', { status: tweet }, function(err, data, response) {
      if (err) {
@@ -141,9 +145,9 @@ function postTweet(body) {
 var MAX_STATION_NAME_LEN = 30;
 var EXPECTED_TIME_TO_API_S = 2;
 
-function getTweetMessage(body) {
-  var preamble = body.transmission.preamble;
-  var cur = body.transmission.current_info;
+function getTweetMessage(body, transmission) {
+  var preamble = transmission.preamble;
+  var cur = transmission.current_info;
   var stationName = body.station_name.length < MAX_STATION_NAME_LEN ? body.station_name : body.station_name.slice(0, MAX_STATION_NAME_LEN);
   var flashInfo = cur.time_to_flash == 255 ? "not flashing" : `FLASHING in ${cur.time_to_flash-EXPECTED_TIME_TO_API_S}s`;
   var l1ref = (cur.L1_REF/1000.0).toFixed(2);

@@ -1,0 +1,3 @@
+[submodule "server/packetparse"]
+	path = server/packetparse
+	url = https://github.com/BrownSpaceEngineering/packetparse

@@ -10,10 +10,13 @@ var Chance = require('chance');
 var chance = new Chance();
 
 var rp = require('request-promise');
+var packetparse = require('../server/packetparse/packetparse.js');
+
+var USE_RAW_ROUTE = true;
 
 var options = {
   method: 'POST',
-  uri: 'http://localhost:3000/equisat/receive',
+  uri: 'http://localhost:3000/equisat/' + (USE_RAW_ROUTE ? 'receive/raw': 'receive'),
   json: true // Automatically stringifies the body to JSON
 };
 
@@ -29,9 +32,9 @@ var packetPromises = packets.map(packet => {
   var packetOption = Object.assign({}, options);
 
   packetOption.body = {
-    transmission: packet,
-    raw: chance.hash({length: 510}), // something random
-    corrected: chance.hash({length: 446}), // something random
+    transmission: packet.parsed,
+    raw: packet.corrected + chance.hash({length: 64}), // something random
+    corrected: packet.corrected,
     station_name: 'Test Computer',
     secret: process.env.SECRET
   }

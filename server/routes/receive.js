@@ -7,7 +7,9 @@ var Transmission = require('../db/models/transmission');
 var Dump = require('../db/models/dump');
 var cuid = require('cuid');
 var chalk = require('chalk');
+var profanity = require( 'profanity-util', { substring: "lite" } );
 var publishTransmission = require('./receive-publish');
+var packetparse = require('../packetparse/packetparse.js');
 
 // config
 SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:20:30 UTC");
@@ -24,11 +26,20 @@ function timestampToCreated(timestamp_s, added) {
 }
 
 router.post('/', function (req, res, next) {
+  receivePacket(req.body, req.body.transmission, null, res, next);
+})
+
+router.post('/raw', function (req, res, next) {
+  transmission = packetparse.parse_packet(req.body.corrected);
+  receivePacket(req.body, transmission, null, res, next);
+})
+
+function receivePacket(body, transmission, added, res, next) {
   try {
 
     // Save entire request body into Dump just for archival purposes
     Dump.create({
-      payload: req.body
+      payload: body
     })
     .then(() => {
       console.log(chalk.blue('Received a request and saved'));
@@ -38,20 +49,19 @@ router.post('/', function (req, res, next) {
     })
 
     // Check if the request has the correct secret password
-    if (!req.body.secret || req.body.secret !== process.env.SECRET) {
+    if (!body.secret || body.secret !== process.env.SECRET) {
       res.status(401).send('Invalid Credentials');
     } else {
-      var raw = req.body.raw;
-      var corrected = req.body.corrected;
+      var raw = body.raw;
+      var corrected = body.corrected;
 
-      // convert raw here
-      // for testing, json is directly on the req.body
-      var added = Date.now()
-      var transmission = req.body.transmission;
+      if (added === null || added === undefined) {
+        added = Date.now()
+      }
 
-      var station_name = req.body.station_name ? req.body.station_name : 'unknown' // if station_name exists on the body, otherwise use unknown
-
-console.log(req.body.doppler_correction);
+      var station_name = body.station_name ? body.station_name : '[unknown]' // if station_name exists on the body, otherwise use unknown
+      // filter just in case (stick with 'lite' substring matching above unless something happens)
+      var station_name = profanity.purify(station_name)[0];
 
       // First find if the transmission has been received before
       Transmission.findOne()
@@ -71,7 +81,7 @@ console.log(req.body.doppler_correction);
             console.log(chalk.green('Transmission already exists - appended information'));
             res.status(201).end();
             // send out emails (async) after response
-            publishTransmission(req.body, checkTransmission.cuid, duplicate=true);
+            publishTransmission(body, transmission, checkTransmission.cuid, duplicate=true);
           })
           .catch(err => {
             next(err);
@@ -82,11 +92,11 @@ console.log(req.body.doppler_correction);
           // unique identifier
           var transmissionCuid = cuid();
           var transmissioncreated = timestampToCreated(transmission.preamble.timestamp, added);
-          var doppler_corrections = req.body.doppler_corrections !== undefined ? req.body.doppler_corrections : null
-          var doppler_correction = req.body.doppler_correction !== undefined ? req.body.doppler_correction : null
-          var latest_rssi = req.body.latest_rssi !== undefined ? req.body.latest_rssi : null
-          var latest_packet_rssi = req.body.latest_packet_rssi !== undefined ? req.body.latest_packet_rssi : null
-          var rx_since_pass_start = req.body.rx_since_pass_start !== undefined ? req.body.rx_since_pass_start : null
+          var doppler_corrections = body.doppler_corrections !== undefined ? body.doppler_corrections : null
+          var doppler_correction = body.doppler_correction !== undefined ? body.doppler_correction : null
+          var latest_rssi = body.latest_rssi !== undefined ? body.latest_rssi : null
+          var latest_packet_rssi = body.latest_packet_rssi !== undefined ? body.latest_packet_rssi : null
+          var rx_since_pass_start = body.rx_since_pass_start !== undefined ? body.rx_since_pass_start : null
 
           var newTransmission = new Transmission({
             created: transmissioncreated,
@@ -95,7 +105,7 @@ console.log(req.body.doppler_correction);
             preamble: transmission.preamble,
             corrected: corrected,
             station_names: [station_name],
-            pass_data: req.body.pass_data,
+            pass_data: body.pass_data,
             doppler_corrections: doppler_corrections,
             doppler_correction: doppler_correction,
             latest_rssi: latest_rssi,
@@ -174,7 +184,7 @@ console.log(req.body.doppler_correction);
             console.log(chalk.green(`Transmission Saved (cuid: ${savedTransmission.cuid})`));
             res.end();
             // send out packet notifications after response
-            publishTransmission(req.body, savedTransmission.cuid);
+            publishTransmission(body, transmission, savedTransmission.cuid);
           })
           .catch(err => {
             next(err);
@@ -189,8 +199,7 @@ console.log(req.body.doppler_correction);
     err.status = 400;
     next(err);
   }
-
-})
+}
 
 module.exports = router;
 module.exports["timestampToCreated"] = timestampToCreated
