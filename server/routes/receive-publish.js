@@ -23,7 +23,7 @@ function publishTransmission(body, transmission, transmissionCuid, duplicate=fal
   postToSlackWebhook(body, transmission, transmissionCuid, duplicate);
 
   // sent Tweet
-  if (!duplicate && T !== null) {
+  if (!duplicate) {
     postTweet(body, transmission);
   }
 
@@ -52,9 +52,10 @@ function getPacketInfoMessage(body, transmission) {
   return `\
 satellite state: ${preamble.satellite_state}
 message type: ${preamble.message_type}
-LiOns (mV): ${cur.L1_REF} ${cur.L2_REF} (active: ${cur.L_REF})
-LiFePos (mV): ${cur.LF1REF} ${cur.LF2REF} ${cur.LF3REF} ${cur.LF4REF}
+Li-ions (mV): ${cur.L1_REF} ${cur.L2_REF} (active: ${cur.L_REF})
+LiFePO4 banks (mV): ${cur.LF1REF + cur.LF2REF} ${cur.LF3REF + cur.LF4REF}
 PANELREF (mV): ${cur.PANELREF}
+LiFePO4 cells (mV): ${cur.LF1REF} ${cur.LF2REF} ${cur.LF3REF} ${cur.LF4REF}
 secs since launch: ${preamble.timestamp}
 boot count: ${cur.boot_count}
 memory was corrupted: ${preamble.MRAM_CPY}
@@ -134,12 +135,15 @@ function postToSlackWebhook(body, transmission, cuid, duplicate) {
 function postTweet(body, transmission) {
   var tweet = getTweetMessage(body, transmission);
   console.log(tweet);
-  T.post('statuses/update', { status: tweet }, function(err, data, response) {
-     if (err) {
-       console.log(chalk.red(`error posting tweet: ${err}`));
-       console.log(chalk.red(response));
-     }
-   });
+  if (T !== null) {
+    console.log(chalk.blue("Posting tweet"));
+    T.post('statuses/update', { status: tweet }, function(err, data, response) {
+       if (err) {
+         console.log(chalk.red(`error posting tweet: ${err}`));
+         console.log(chalk.red(response));
+       }
+     });
+  }
 }
 
 var MAX_STATION_NAME_LEN = 30;
@@ -153,19 +157,19 @@ function getTweetMessage(body, transmission) {
   var l1ref = (cur.L1_REF/1000.0).toFixed(2);
   var l2ref = (cur.L2_REF/1000.0).toFixed(2);
   var lionInfo = `${l1ref}V ${l2ref}V (${cur.L1_TEMP}°C ${cur.L2_TEMP}°C)`;
-  var lf1ref = (cur.LF1REF/1000.0).toFixed(2);
-  var lf2ref = (cur.LF2REF/1000.0).toFixed(2);
-  var lf3ref = (cur.LF3REF/1000.0).toFixed(2);
-  var lf4ref = (cur.LF4REF/1000.0).toFixed(2);
-  var lifepoInfo = `${lf1ref}V ${lf2ref}V ${lf3ref}V ${lf4ref}V`;
+  var lf1ref = cur.LF1REF/1000.0;
+  var lf2ref = cur.LF2REF/1000.0;
+  var lf3ref = cur.LF3REF/1000.0;
+  var lf4ref = cur.LF4REF/1000.0;
+  var lifepoInfo = `${(lf1ref + lf2ref).toFixed(2)}V ${(lf3ref + lf4ref).toFixed(2)}V`;
   var sunInfo = cur.PANELREF > 5500 ? "in sunlight" : "in darkness";
 
   // Example:
   // EQUiSat update: in IDLE FLASH mode | 30s to next flash | LiOn batteries: 81% 82% (23°C 25°C) | LiFePO batteries: 90% 50% 87% 90% | in sunlight | 23 reboots | equisat.brownspace.org/data
   return `EQUiSat update from ${stationName}: in ${preamble.satellite_state} mode \
 | ${flashInfo} \
-| LiOn batteries: ${lionInfo} \
-| LiFePO batteries: ${lifepoInfo} \
+| Li-ion batteries: ${lionInfo} \
+| LiFePO4 banks: ${lifepoInfo} \
 | ${sunInfo} \
 | ${cur.boot_count} reboots \
 | equisat.brownspace.org/data`;
