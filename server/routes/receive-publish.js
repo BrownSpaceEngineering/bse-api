@@ -18,12 +18,12 @@ if (config.TWIT_CONFIG == null) {
 TRANSMISSION_ROUTE_PREFIX = "http://api.brownspace.org/equisat/transmissions/"
 
 /* publishes a received transmission to email and webhooks */
-function publishTransmission(body, transmission, transmissionCuid, duplicate=false) {
+function publishTransmission(body, transmission, transmissionCuid, postPublicly=true, duplicate=false) {
   // post to slack
   postToSlackWebhook(body, transmission, transmissionCuid, duplicate);
 
-  // sent Tweet
-  if (!duplicate) {
+  // sent Tweet if posting publicly (default to yes)
+  if (!duplicate && (postPublicly === undefined || postPublicly)) {
     postTweet(body, transmission);
   }
 

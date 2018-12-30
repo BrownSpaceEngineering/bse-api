@@ -26,12 +26,12 @@ function timestampToCreated(timestamp_s, added) {
 }
 
 router.post('/', function (req, res, next) {
-  receivePacket(req.body, req.body.transmission, null, res, next);
+  receivePacket(req.body, req.body.transmission, req.body.rx_time, res, next);
 })
 
 router.post('/raw', function (req, res, next) {
   transmission = packetparse.parse_packet(req.body.corrected);
-  receivePacket(req.body, transmission, null, res, next);
+  receivePacket(req.body, transmission, req.body.rx_time, res, next);
 })
 
 function receivePacket(body, transmission, added, res, next) {
@@ -63,6 +63,8 @@ function receivePacket(body, transmission, added, res, next) {
       // filter just in case (stick with 'lite' substring matching above unless something happens)
       var station_name = profanity.purify(station_name)[0];
 
+      var source = body.source !== undefined ? body.source : null
+
       // First find if the transmission has been received before
       Transmission.findOne()
       .where('corrected').equals(corrected)
@@ -76,12 +78,15 @@ function receivePacket(body, transmission, added, res, next) {
           // Append raw to list of raws
           checkTransmission.raws.push(raw);
 
+          // Add source to list of sources
+          checkTransmission.sources.push(source);
+
           checkTransmission.save()
           .then(() => {
             console.log(chalk.green('Transmission already exists - appended information'));
             res.status(201).end();
             // send out emails (async) after response
-            publishTransmission(body, transmission, checkTransmission.cuid, duplicate=true);
+            publishTransmission(body, transmission, checkTransmission.cuid, postPublicly=body.post_publicly, duplicate=true);
           })
           .catch(err => {
             next(err);
@@ -105,6 +110,7 @@ function receivePacket(body, transmission, added, res, next) {
             preamble: transmission.preamble,
             corrected: corrected,
             station_names: [station_name],
+            sources: [source],
             pass_data: body.pass_data,
             doppler_corrections: doppler_corrections,
             doppler_correction: doppler_correction,
@@ -184,7 +190,7 @@ function receivePacket(body, transmission, added, res, next) {
             console.log(chalk.green(`Transmission Saved (cuid: ${savedTransmission.cuid})`));
             res.end();
             // send out packet notifications after response
-            publishTransmission(body, transmission, savedTransmission.cuid);
+            publishTransmission(body, transmission, savedTransmission.cuid, postPublicly=body.post_publicly);
           })
           .catch(err => {
             next(err);

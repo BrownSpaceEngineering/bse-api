@@ -32,6 +32,11 @@ var transmissionSchema = new Schema({
     type: String
   }],
 
+  // // the application which sent the data
+  sources: [{
+    type: String
+  }],
+
   // Unique Identifier
   cuid: {
     type: String,

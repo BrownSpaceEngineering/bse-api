@@ -36,7 +36,10 @@ var packetPromises = packets.map(packet => {
     raw: packet.corrected + chance.hash({length: 64}), // something random
     corrected: packet.corrected,
     station_name: 'Test Computer',
-    secret: process.env.SECRET
+    secret: process.env.SECRET,
+    post_publicly: true,
+    source: "test_source",
+    // rx_time: Date.now()
   }
 
   return rp(packetOption);
