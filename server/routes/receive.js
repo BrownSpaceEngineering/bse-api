@@ -104,6 +104,7 @@ function receivePacket(body, transmission, added, res, next) {
           var rx_since_pass_start = body.rx_since_pass_start !== undefined ? body.rx_since_pass_start : null
 
           var newTransmission = new Transmission({
+            added: added,
             created: transmissioncreated,
             raws: [raw],
             cuid: transmissionCuid,
@@ -151,6 +152,7 @@ function receivePacket(body, transmission, added, res, next) {
             if (Array.isArray(transmission.data)) {
               var newDataPromises = transmission.data.map(data => {
                 var newData = new Data({
+                  added: added,
                   created: timestampToCreated(data.timestamp, added),
                   payload: data,
                   data_type: dataType,
@@ -163,6 +165,7 @@ function receivePacket(body, transmission, added, res, next) {
             } else {
               // Otherwise the transmission.data is an Object and not an array of objects
               var newData = new Data({
+                added: added,
                 created: timestampToCreated(transmission.data.timestamp, added),
                 payload: transmission.data,
                 data_type: dataType,
