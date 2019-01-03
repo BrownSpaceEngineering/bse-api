@@ -30,21 +30,27 @@ function run() {
     var transmissionUpdates = transmissions.map(tx => {
       console.log(`Updating transmission ${tx._id} with timestamp ${tx.preamble.timestamp}`)
 
+      // updated request_time to equal added for equistation packets
+      // if (tx.sources.indexOf("equistation") != -1) {
+      //   console.log(`req time: ${tx.request_time} -> added: ${tx.added}`);
+      //   tx.request_time = tx.added;
+      // }
+
       // updated sources in DB BEFORE WE STARTED GETTING DATA FROM NEW APPS
       // (DON'T RUN THIS AGAIN)
       // for (var i = 0; i < tx.station_names.length; i++) {
       //   tx.sources.push("equistation");
       // }
-      //
-      // if (ACTUALLY_UPDATE) {
-      //   tx.save()
-      //     .then(updated => {
-      //       console.log(`${tx._id}: updated transmission`);
-      //     })
-      //     .catch(err => {
-      //       console.error(`${tx._id}: error updating transmission: ${err}`);
-      //     });
-      // }
+
+      if (ACTUALLY_UPDATE) {
+        tx.save()
+          .then(updated => {
+            console.log(`${tx._id}: updated transmission`);
+          })
+          .catch(err => {
+            console.error(`${tx._id}: error updating transmission: ${err}`);
+          });
+      }
   });
   })
   .catch(err => {
