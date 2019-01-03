@@ -86,7 +86,7 @@ function receivePacket(body, transmission, added, res, next) {
             console.log(chalk.green('Transmission already exists - appended information'));
             res.status(201).end();
             // send out emails (async) after response
-            publishTransmission(body, transmission, checkTransmission.cuid, postPublicly=body.post_publicly, duplicate=true);
+            publishTransmission(body, transmission, checkTransmission, postPublicly=body.post_publicly, duplicate=true);
           })
           .catch(err => {
             next(err);
@@ -193,7 +193,7 @@ function receivePacket(body, transmission, added, res, next) {
             console.log(chalk.green(`Transmission Saved (cuid: ${savedTransmission.cuid})`));
             res.end();
             // send out packet notifications after response
-            publishTransmission(body, transmission, savedTransmission.cuid, postPublicly=body.post_publicly);
+            publishTransmission(body, transmission, savedTransmission, postPublicly=body.post_publicly);
           })
           .catch(err => {
             next(err);

@@ -18,13 +18,13 @@ if (config.TWIT_CONFIG == null) {
 TRANSMISSION_ROUTE_PREFIX = "http://api.brownspace.org/equisat/transmissions/"
 
 /* publishes a received transmission to email and webhooks */
-function publishTransmission(body, transmission, transmissionCuid, postPublicly=true, duplicate=false) {
+function publishTransmission(body, transmission, storedTransmission, postPublicly=true, duplicate=false) {
   // post to slack
-  postToSlackWebhook(body, transmission, transmissionCuid, duplicate);
+  postToSlackWebhook(body, transmission, storedTransmission, duplicate);
 
   // sent Tweet if posting publicly (default to yes)
   if (!duplicate && (postPublicly === undefined || postPublicly)) {
-    postTweet(body, transmission);
+    postTweet(body, transmission, storedTransmission);
   }
 
   // send emails
@@ -39,14 +39,24 @@ function publishTransmission(body, transmission, transmissionCuid, postPublicly=
         full_recipients.push(email);
       }
     }
-    sendPacketEmail(body, transmission, transmissionCuid, duplicate, server, digest_recipients, full=false);
-    sendPacketEmail(body, transmission, transmissionCuid, duplicate, server, full_recipients, full=true);
+    sendPacketEmail(body, transmission, storedTransmission, duplicate, server, digest_recipients, full=false);
+    sendPacketEmail(body, transmission, storedTransmission, duplicate, server, full_recipients, full=true);
   } else {
     console.log(chalk.red("didn't send email on packet becuase no recipients or no email config specified"));
   }
 }
 
-function getPacketInfoMessage(body, transmission) {
+function dateStr(dt) {
+  res = dt.toISOString();
+  res = res.substring(0, 16)
+  res = res.replace("T", " ")
+  return res + " UTC"
+  // var yr = String(dt.getUTCFullYear()).substring(2);
+  // return `${dt.getUTCMonth()+1}/${dt.getUTCDate()}/${yr} ${dt.getUTCHours()}:${dt.getUTCMinutes()} UTC`
+  // return dt.toLocaleString('en-US', { timeZone: 'UTC' }) + " UTC";
+}
+
+function getPacketInfoMessage(body, transmission, storedTransmission) {
   var preamble = transmission.preamble;
   var cur = transmission.current_info;
   return `\
@@ -57,20 +67,21 @@ LiFePO4 banks (mV): ${cur.LF1REF + cur.LF2REF} ${cur.LF3REF + cur.LF4REF}
 PANELREF (mV): ${cur.PANELREF}
 LiFePO4 cells (mV): ${cur.LF1REF} ${cur.LF2REF} ${cur.LF3REF} ${cur.LF4REF}
 secs since launch: ${preamble.timestamp}
+RX time: ${dateStr(storedTransmission.added)}
 boot count: ${cur.boot_count}
 memory was corrupted: ${preamble.MRAM_CPY}
 secs to flash: ${cur.time_to_flash}`;
 }
 
-function sendPacketEmail(body, transmission, transmissionCuid, duplicate, server, recipients, full=false) {
+function sendPacketEmail(body, transmission, storedTransmission, duplicate, server, recipients, full=false) {
   if (recipients.length == 0) {
     return;
   }
 
   var subject = `EQUiStation '${body.station_name}' received a ${duplicate ? "duplicate packet" : "packet!"}`;
   // build message with optional full part
-  var message = getPacketInfoMessage(body, transmission);
-  message = message + `\n\nfull packet: ${TRANSMISSION_ROUTE_PREFIX + transmissionCuid}`
+  var message = getPacketInfoMessage(body, transmission, storedTransmission);
+  message = message + `\n\nfull packet: ${TRANSMISSION_ROUTE_PREFIX + storedTransmission.cuid}`
 
   if (full) {
     message = message + `
@@ -99,10 +110,10 @@ ${JSON.stringify(transmission, null, 4)}`
   });
 }
 
-function postToSlackWebhook(body, transmission, cuid, duplicate) {
+function postToSlackWebhook(body, transmission, storedTransmission, duplicate) {
   var stationName = body.station_name;
   var subject = stationName + (duplicate ? " received a duplicate packet" : " received a packet!");
-  var message = duplicate ? "" : getPacketInfoMessage(body, transmission);
+  var message = duplicate ? "" : getPacketInfoMessage(body, transmission, storedTransmission);
   var payload = {
     text: subject,
     attachments: [
@@ -112,7 +123,7 @@ function postToSlackWebhook(body, transmission, cuid, duplicate) {
           {
             type: "button",
             text: "View Packet",
-            url: TRANSMISSION_ROUTE_PREFIX + cuid
+            url: TRANSMISSION_ROUTE_PREFIX + storedTransmission.cuid
           }
         ]
       }
@@ -132,8 +143,8 @@ function postToSlackWebhook(body, transmission, cuid, duplicate) {
   });
 }
 
-function postTweet(body, transmission) {
-  var tweet = getTweetMessage(body, transmission);
+function postTweet(body, transmission, storedTransmission) {
+  var tweet = getTweetMessage(body, transmission, storedTransmission);
   console.log(tweet);
   if (T !== null) {
     console.log(chalk.blue("Posting tweet"));
@@ -149,7 +160,7 @@ function postTweet(body, transmission) {
 var MAX_STATION_NAME_LEN = 30;
 var EXPECTED_TIME_TO_API_S = 2;
 
-function getTweetMessage(body, transmission) {
+function getTweetMessage(body, transmission, storedTransmission) {
   var preamble = transmission.preamble;
   var cur = transmission.current_info;
   var stationName = body.station_name.length < MAX_STATION_NAME_LEN ? body.station_name : body.station_name.slice(0, MAX_STATION_NAME_LEN);
@@ -165,13 +176,14 @@ function getTweetMessage(body, transmission) {
   var sunInfo = cur.PANELREF > 5500 ? "in sunlight" : "in darkness";
 
   // Example:
-  // EQUiSat update: in IDLE FLASH mode | 30s to next flash | LiOn batteries: 81% 82% (23°C 25°C) | LiFePO batteries: 90% 50% 87% 90% | in sunlight | 23 reboots | equisat.brownspace.org/data
+  // EQUiSat update from Test Computer: in IDLE FLASH mode | FLASHING in 17s | Li-ion batteries: 4.06V 4.17V (-103°C -103°C) | LiFePO4 banks: 6.47V 6.42V | in sunlight | 2 reboots | rx time: 2019-01-03 02:34 UTC | equisat.brownspace.org/data
   return `EQUiSat update from ${stationName}: in ${preamble.satellite_state} mode \
 | ${flashInfo} \
 | Li-ion batteries: ${lionInfo} \
 | LiFePO4 banks: ${lifepoInfo} \
 | ${sunInfo} \
 | ${cur.boot_count} reboots \
+| RX time: ${dateStr(storedTransmission.added)} \
 | equisat.brownspace.org/data`;
 }
 
