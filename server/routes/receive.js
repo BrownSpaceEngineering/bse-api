@@ -10,6 +10,7 @@ var chalk = require('chalk');
 var profanity = require( 'profanity-util', { substring: "lite" } );
 var publishTransmission = require('./receive-publish');
 var packetparse = require('../packetparse/packetparse.js');
+var security = require('./data/key-manager');
 
 // config
 SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:20:30 UTC");
@@ -49,7 +50,7 @@ function receivePacket(body, transmission, added, res, next) {
     })
 
     // Check if the request has the correct secret password
-    if (!body.secret || body.secret !== process.env.SECRET) {
+    if (!body.secret || !security.validateKey(body.secret)) {
       res.status(401).send('Invalid Credentials');
     } else {
       var raw = body.raw;
