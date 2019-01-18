@@ -58,7 +58,7 @@ function receivePacket(body, transmission, added, res, next) {
     })
 
     // Check if the request has the correct secret password
-    if (!body.secret || !(security.validateKey(body.secret) || secret == process.env.SECRET)) {
+    if (!body.secret || !(security.validateKey(body.secret) || body.secret == process.env.SECRET)) {
       res.status(401).send('Invalid Credentials');
     } else {
 
