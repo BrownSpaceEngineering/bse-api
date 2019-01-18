@@ -2,14 +2,86 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var transmissionSchema = new Schema({
-  // request_time is when the transmission was posted to the server
-  request_time: {
-    type: Date,
-    default: Date.now,
-    required: true
-  },
+  station_info: [{
+    // request_time is when the transmission was posted to the server
+    request_time: {
+      type: Date,
+      default: Date.now,
+      required: true
+    },
+
+    // added is when transmission was received by the ground station
+    added: {
+      type: Date,
+      default: Date.now,
+      required: true
+    },
+
+    // created corresponds directly to the packet timestamp, but in real time
+    created: {
+      type: Date,
+      required: true
+    },
+
+    // Original Hex String Received
+    raw: {
+      type: String,
+      required: true
+    },
+
+    name: {
+      type: String
+    },
+
+    // the application which sent the data
+    source: {
+      type: String
+    },
+
+    // N is +, S is -
+    latitude: {
+      type: Number,
+    },
+
+    // W is -, E is +
+    longitude: {
+      type: Number,
+    },
+
+    // EQUiStation-specific data
+    pass_data: {
+      type: Schema.Types.Mixed,
+      required: false
+    },
+
+    doppler_corrections: [{
+      type: Schema.Types.Mixed,
+      required: false
+    }],
+
+    doppler_correction: {
+      type: Number,
+      required: false
+    },
+
+    latest_rssi: {
+      type: Number,
+      required: false
+    },
+
+    latest_packet_rssi: {
+      type: Number,
+      required: false
+    },
+
+    rx_since_pass_start: {
+      type: Number,
+      required: false
+    },
+  }],
 
   // added is when transmission was received by the ground station
+  // copied from the first packet received (not affected by duplicates)
   added: {
     type: Date,
     default: Date.now,
@@ -17,16 +89,11 @@ var transmissionSchema = new Schema({
   },
 
   // created corresponds directly to the packet timestamp, but in real time
+  // copied from the first packet received (not affected by duplicates)
   created: {
     type: Date,
     required: true
   },
-
-  // Original Hex Strings Received
-  raws: [{
-    type: String,
-    required: true
-  }],
 
   // Post Reed Solomon decoding string for parsing
   corrected: {
@@ -34,15 +101,6 @@ var transmissionSchema = new Schema({
     required: true,
     unique: true
   },
-
-  station_names: [{
-    type: String
-  }],
-
-  // // the application which sent the data
-  sources: [{
-    type: String
-  }],
 
   // Unique Identifier
   cuid: {
@@ -87,36 +145,6 @@ var transmissionSchema = new Schema({
       type: Number,
       required: true
     }
-  },
-
-  pass_data: {
-    type: Schema.Types.Mixed,
-    required: false
-  },
-
-  doppler_corrections: [{
-    type: Schema.Types.Mixed,
-    required: false
-  }],
-
-  doppler_correction: {
-    type: Number,
-    required: false
-  },
-
-  latest_rssi: {
-    type: Number,
-    required: false
-  },
-
-  latest_packet_rssi: {
-    type: Number,
-    required: false
-  },
-
-  rx_since_pass_start: {
-    type: Number,
-    required: false
   },
 
   error_codes: [{

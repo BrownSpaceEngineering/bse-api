@@ -30,6 +30,42 @@ function run() {
     var transmissionUpdates = transmissions.map(tx => {
       console.log(`Updating transmission ${tx._id} with timestamp ${tx.preamble.timestamp}`)
 
+      // transition to station_info list from a bunch of random fields
+      // AND add lat/lon
+      // for (var i = 0; i < tx.station_names.length; i++) {
+      //   lat = null
+      //   lon = null
+      //   if (tx.station_names[i] == "Ladd Observatory" || tx.station_names[i] == "Ladd Observatory Yagi") {
+      //     lat = 41.839157
+      //     lon = -71.398982
+      //   } else if (tx.station_names[i] == "BSE Mission Control") {
+      //     lat = 41.826992
+      //     lon = -71.398005
+      //   } else if (tx.station_names[i] == "Sapienza University of Rome") {
+      //     lat = 41.892942
+      //     lon = 12.494183
+      //   }
+      //
+      //   var station_info = {
+      //     request_time: tx.request_time,
+      //     added: tx.added,
+      //     created: tx.created,
+      //     raw: tx.raws[i],
+      //     name: tx.station_names[i],
+      //     source: tx.sources[i] == null ? "equistation" : tx.sources[i],
+      //     latitude: lat,
+      //     longitude: lon,
+      //     pass_data: tx.pass_data === undefined ? null : tx.pass_data,
+      //     doppler_corrections: tx.doppler_corrections,
+      //     doppler_correction: tx.doppler_correction,
+      //     latest_rssi: tx.latest_rssi,
+      //     latest_packet_rssi: tx.latest_packet_rssi,
+      //     rx_since_pass_start: tx.rx_since_pass_start
+      //   }
+      //   console.log(station_info);
+      //   tx.station_info.push(station_info);
+      // }
+
       // updated request_time to equal added for equistation packets
       // if (tx.sources.indexOf("equistation") != -1) {
       //   console.log(`req time: ${tx.request_time} -> added: ${tx.added}`);

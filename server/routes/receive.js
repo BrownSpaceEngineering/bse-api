@@ -58,11 +58,9 @@ function receivePacket(body, transmission, added, res, next) {
     })
 
     // Check if the request has the correct secret password
-    if (!body.secret || !security.validateKey(body.secret)) {
+    if (!body.secret || !(security.validateKey(body.secret) || secret == process.env.SECRET)) {
       res.status(401).send('Invalid Credentials');
     } else {
-      var raw = body.raw;
-      var corrected = body.corrected;
 
       if (added === null || added === undefined) {
         added = Date.now()
@@ -72,7 +70,36 @@ function receivePacket(body, transmission, added, res, next) {
       // filter just in case (stick with 'lite' substring matching above unless something happens)
       var station_name = profanity.purify(station_name)[0];
 
+      var raw = body.raw;
+      var corrected = body.corrected;
       var source = body.source !== undefined ? body.source : null
+      var transmissioncreated = timestampToCreated(transmission.preamble.timestamp, added);
+      var latitude = (body.latitude === undefined || body.latitude === 0) ? null : body.latitude
+      var longitude = (body.longitude === undefined || body.longitude === 0) ? null : body.longitude
+      // EQUiStation-specific data
+      var pass_data = body.pass_data !== undefined ? body.pass_data : null
+      var doppler_corrections = body.doppler_corrections !== undefined ? body.doppler_corrections : null
+      var doppler_correction = body.doppler_correction !== undefined ? body.doppler_correction : null
+      var latest_rssi = body.latest_rssi !== undefined ? body.latest_rssi : null
+      var latest_packet_rssi = body.latest_packet_rssi !== undefined ? body.latest_packet_rssi : null
+      var rx_since_pass_start = body.rx_since_pass_start !== undefined ? body.rx_since_pass_start : null
+
+      var station_info = {
+        request_time: Date.now(),
+        added: added,
+        created: transmissioncreated,
+        raw: raw,
+        name: station_name,
+        source: source,
+        latitude: latitude,
+        longitude: longitude,
+        pass_data: pass_data,
+        doppler_corrections: doppler_corrections,
+        doppler_correction: doppler_correction,
+        latest_rssi: latest_rssi,
+        latest_packet_rssi: latest_packet_rssi,
+        rx_since_pass_start: rx_since_pass_start
+      }
 
       // First find if the transmission has been received before
       Transmission.findOne()
@@ -81,14 +108,8 @@ function receivePacket(body, transmission, added, res, next) {
       .then(checkTransmission => {
         // If transmission with same corrected string exists
         if (checkTransmission) {
-          // Add station_name to the list of station names
-          checkTransmission.station_names.push(station_name);
-
-          // Append raw to list of raws
-          checkTransmission.raws.push(raw);
-
-          // Add source to list of sources
-          checkTransmission.sources.push(source);
+          // Add station info to the list
+          checkTransmission.station_info.push(station_info);
 
           checkTransmission.save()
           .then(() => {
@@ -105,28 +126,13 @@ function receivePacket(body, transmission, added, res, next) {
 
           // unique identifier
           var transmissionCuid = cuid();
-          var transmissioncreated = timestampToCreated(transmission.preamble.timestamp, added);
-          var doppler_corrections = body.doppler_corrections !== undefined ? body.doppler_corrections : null
-          var doppler_correction = body.doppler_correction !== undefined ? body.doppler_correction : null
-          var latest_rssi = body.latest_rssi !== undefined ? body.latest_rssi : null
-          var latest_packet_rssi = body.latest_packet_rssi !== undefined ? body.latest_packet_rssi : null
-          var rx_since_pass_start = body.rx_since_pass_start !== undefined ? body.rx_since_pass_start : null
 
           var newTransmission = new Transmission({
-            added: added,
+            station_info: station_info,
             created: transmissioncreated,
-            raws: [raw],
             cuid: transmissionCuid,
             preamble: transmission.preamble,
-            corrected: corrected,
-            station_names: [station_name],
-            sources: [source],
-            pass_data: body.pass_data,
-            doppler_corrections: doppler_corrections,
-            doppler_correction: doppler_correction,
-            latest_rssi: latest_rssi,
-            latest_packet_rssi: latest_packet_rssi,
-            rx_since_pass_start: rx_since_pass_start
+            corrected: corrected
           });
 
           // An array of Promises for Error Code database saves
