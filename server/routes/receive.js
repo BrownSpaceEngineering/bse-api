@@ -110,6 +110,8 @@ function receivePacket(body, transmission, added, res, next) {
         if (checkTransmission) {
           // Add station info to the list
           checkTransmission.station_info.push(station_info);
+          // Add station name for backwards compatibility
+          checkTransmission.station_names.push(station_name);
 
           checkTransmission.save()
           .then(() => {
@@ -129,6 +131,7 @@ function receivePacket(body, transmission, added, res, next) {
 
           var newTransmission = new Transmission({
             station_info: station_info,
+            station_names: [station_name], // for backwards compatibility
             created: transmissioncreated,
             cuid: transmissionCuid,
             preamble: transmission.preamble,

@@ -80,6 +80,11 @@ var transmissionSchema = new Schema({
     },
   }],
 
+  // deprecated: kept for backwards compatibility with mobile app
+  station_names: [{
+    type: String
+  }],
+
   // added is when transmission was received by the ground station
   // copied from the first packet received (not affected by duplicates)
   added: {
