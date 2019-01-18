@@ -11,6 +11,8 @@ var chance = new Chance();
 
 var rp = require('request-promise');
 var packetparse = require('../server/packetparse/packetparse.js');
+var security = require('../server/routes/key-manager');
+var secret = security.generateKey();
 
 var USE_RAW_ROUTE = true;
 
@@ -36,7 +38,7 @@ var packetPromises = packets.map(packet => {
     raw: packet.corrected + chance.hash({length: 64}), // something random
     corrected: packet.corrected,
     station_name: 'Test Computer',
-    secret: process.env.SECRET,
+    secret: secret,
     post_publicly: true,
     source: "test_source",
     // rx_time: Date.now()

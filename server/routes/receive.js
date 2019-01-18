@@ -10,7 +10,7 @@ var chalk = require('chalk');
 var profanity = require( 'profanity-util', { substring: "lite" } );
 var publishTransmission = require('./receive-publish');
 var packetparse = require('../packetparse/packetparse.js');
-var security = require('./data/key-manager');
+var security = require('./key-manager');
 
 // config
 SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:20:30 UTC");
@@ -31,8 +31,16 @@ router.post('/', function (req, res, next) {
 })
 
 router.post('/raw', function (req, res, next) {
-  transmission = packetparse.parse_packet(req.body.corrected);
-  receivePacket(req.body, transmission, req.body.rx_time, res, next);
+  ret = packetparse.parse_packet(req.body.corrected);
+  transmission = ret[0];
+  errs = ret[1];
+  if (errs.length !== 0) {
+    msg = `Submitted packet had parse errors: ${errs}`
+    res.status(401).send(msg);
+    console.log(chalk.red(msg));
+  } else {
+    receivePacket(req.body, transmission, req.body.rx_time, res, next);
+  }
 })
 
 function receivePacket(body, transmission, added, res, next) {
