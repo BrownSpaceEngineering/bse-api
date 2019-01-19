@@ -7,7 +7,7 @@ var mongoose = require('mongoose');
 var routes = require('../server/routes'); // needed for transmission
 var Transmission = require('../server/db/models/transmission');
 
-ACTUALLY_UPDATE = false
+ACTUALLY_UPDATE = false;
 
 connectDb
 .then(() => {
@@ -29,6 +29,29 @@ function run() {
     // update transmission field
     var transmissionUpdates = transmissions.map(tx => {
       console.log(`Updating transmission ${tx._id} with timestamp ${tx.preamble.timestamp}`)
+
+      // clear out old fields after moving to station_info list
+      // (switch to JS object to remove params)
+      // function run() {
+      //   // the only way: https://team.goodeggs.com/how-to-remove-a-property-from-a-mongoose-js-schema-1947330c6974
+      //   Transmission.collection.update({}, {$unset: {
+      //     "request_time": "",
+      //     "raws": "",
+      //     "sources": "",
+      //     "pass_data": "",
+      //     "doppler_corrections": "",
+      //     "doppler_correction": "",
+      //     "latest_rssi": "",
+      //     "latest_packet_rssi": "",
+      //     "rx_since_pass_start": "",
+      //   }},
+      //   {multi: true, safe: true}
+      //   ).then(() => {
+      //     console.log("done");
+      //   }).catch((err) => {
+      //     console.log(err);
+      //   });
+      // }
 
       // transition to station_info list from a bunch of random fields
       // AND add lat/lon
@@ -79,7 +102,7 @@ function run() {
       // }
 
       if (ACTUALLY_UPDATE) {
-        tx.save()
+        tx.update()
           .then(updated => {
             console.log(`${tx._id}: updated transmission`);
           })
