@@ -5,7 +5,7 @@ const const1 = parseInt(process.env.CONST1);
 const const2 = parseInt(process.env.CONST2);
 
 exports.generateKey = function() {
-	return Buffer.from("" + (Math.floor(0.5 * multiplier) * const1 + const2)).toString('base64');
+	return Buffer.from("" + (Math.floor(Math.random() * multiplier) * const1 + const2)).toString('base64');
 };
 
 exports.validateKey = function(key) {
