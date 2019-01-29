@@ -30,6 +30,12 @@ function run() {
     var transmissionUpdates = transmissions.map(tx => {
       console.log(`Updating transmission ${tx._id} with timestamp ${tx.preamble.timestamp}`)
 
+      // // fix bug where tx.added set to rx_time instead of added (affected new methods)
+      // if (tx.added.getTime() != tx.station_info[0].added.getTime()) {
+      //   console.log(`different (${tx.added} vs ${tx.station_info[0].added})`)
+      //   tx.added = tx.station_info[0].added
+      // }
+
       // clear out old fields after moving to station_info list
       // (switch to JS object to remove params)
       // function run() {
@@ -102,7 +108,7 @@ function run() {
       // }
 
       if (ACTUALLY_UPDATE) {
-        tx.update()
+        tx.save()
           .then(updated => {
             console.log(`${tx._id}: updated transmission`);
           })

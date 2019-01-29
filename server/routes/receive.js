@@ -132,6 +132,7 @@ function receivePacket(body, transmission, added, res, next) {
           var newTransmission = new Transmission({
             station_info: station_info,
             station_names: [station_name], // for backwards compatibility
+            added: added,
             created: transmissioncreated,
             cuid: transmissionCuid,
             preamble: transmission.preamble,
