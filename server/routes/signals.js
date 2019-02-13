@@ -197,7 +197,7 @@ router.get('/latest', function (req, res, next) {
 router.get('/latest_single', function (req, res, next) {
   try {
     var date = new Date();
-    date.setMonth(d.getMonth() - 1);
+    date.setMonth(date.getMonth() - 1);
 
     var curInfoQuery = CurrentInfo.find({added : { $gte : date} }).sort('-created');
     var dataQuery = Data.find({added : { $gte : date} }).sort('-created');
