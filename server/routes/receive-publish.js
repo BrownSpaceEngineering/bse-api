@@ -67,6 +67,7 @@ LiFePO4 banks (mV): ${cur.LF1REF + cur.LF2REF} ${cur.LF3REF + cur.LF4REF}
 PANELREF (mV): ${cur.PANELREF}
 LiFePO4 cells (mV): ${cur.LF1REF} ${cur.LF2REF} ${cur.LF3REF} ${cur.LF4REF}
 secs since launch: ${preamble.timestamp}
+TX time: ${dateStr(storedTransmission.created)}
 RX time: ${dateStr(storedTransmission.added)}
 boot count: ${cur.boot_count}
 memory was corrupted: ${preamble.MRAM_CPY}

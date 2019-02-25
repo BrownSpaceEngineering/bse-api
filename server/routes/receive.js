@@ -11,20 +11,7 @@ var profanity = require( 'profanity-util', { substring: "lite" } );
 var publishTransmission = require('./receive-publish');
 var packetparse = require('../packetparse/packetparse.js');
 var security = require('./key-manager');
-
-// config
-SATELLITE_FIRST_BOOT_DATE_UTC = new Date("7/13/2018 14:20:30 UTC");
-SATELLITE_CLOCK_SPEED_FACTOR = 1.00464518434817
-
-/* generates a received date object from a satellite timestamp, based on the 0-date specified above */
-function timestampToCreated(timestamp_s, added) {
-  newCreated = new Date(SATELLITE_FIRST_BOOT_DATE_UTC.getTime() + SATELLITE_CLOCK_SPEED_FACTOR*timestamp_s*1000)
-  // don't update to newCreated if greater than added, just used added
-  if (newCreated.getTime() > added) {
-    newCreated = added;
-  }
-  return newCreated;
-}
+var timing = require('./sat-timing.js');
 
 router.post('/', function (req, res, next) {
   receivePacket(req.body, req.body.transmission, req.body.rx_time, res, next);
@@ -73,7 +60,7 @@ function receivePacket(body, transmission, added, res, next) {
       var raw = body.raw;
       var corrected = body.corrected;
       var source = body.source !== undefined ? body.source : null
-      var transmissioncreated = timestampToCreated(transmission.preamble.timestamp, added);
+      var transmissioncreated = timing.timestampToCreated(transmission.preamble.timestamp, added);
       var latitude = (body.latitude === undefined || body.latitude === 0) ? null : body.latitude
       var longitude = (body.longitude === undefined || body.longitude === 0) ? null : body.longitude
       // EQUiStation-specific data
@@ -142,7 +129,7 @@ function receivePacket(body, transmission, added, res, next) {
           // An array of Promises for Error Code database saves
           var newErrorCodePromises = transmission.errors.map(errorCode => {
             var newErrorCode = new ErrorCode(errorCode);
-            newErrorCode.created = timestampToCreated(errorCode.timestamp, added);
+            newErrorCode.created = timing.timestampToCreatedRelative(errorCode.timestamp, transmissioncreated, transmission.preamble.timestamp);
             newErrorCode.transmission_cuid = transmissionCuid;
             return newErrorCode.save();
           });
@@ -172,7 +159,7 @@ function receivePacket(body, transmission, added, res, next) {
               var newDataPromises = transmission.data.map(data => {
                 var newData = new Data({
                   added: added,
-                  created: timestampToCreated(data.timestamp, added),
+                  created: timing.timestampToCreatedRelative(data.timestamp, transmissioncreated, transmission.preamble.timestamp),
                   payload: data,
                   data_type: dataType,
                   transmission_cuid: transmissionCuid
@@ -185,7 +172,7 @@ function receivePacket(body, transmission, added, res, next) {
               // Otherwise the transmission.data is an Object and not an array of objects
               var newData = new Data({
                 added: added,
-                created: timestampToCreated(transmission.data.timestamp, added),
+                created: timing.timestampToCreatedRelative(transmission.data.timestamp, transmissioncreated, transmission.preamble.timestamp),
                 payload: transmission.data,
                 data_type: dataType,
                 transmission_cuid: transmissionCuid
@@ -230,4 +217,3 @@ function receivePacket(body, transmission, added, res, next) {
 }
 
 module.exports = router;
-module.exports["timestampToCreated"] = timestampToCreated
