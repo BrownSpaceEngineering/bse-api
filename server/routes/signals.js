@@ -196,11 +196,25 @@ router.get('/latest', function (req, res, next) {
 */
 router.get('/latest_single', function (req, res, next) {
   try {
-    var date = new Date();
-    date.setMonth(date.getMonth() - 1);
-
-    var curInfoQuery = CurrentInfo.find({added : { $gte : date} }).sort('-created');
-    var dataQuery = Data.find({added : { $gte : date} }).sort('-created');
+    var curInfoQuery = CurrentInfo.find().sort('-created').limit(1);
+    var dataQuery = Data.aggregate([
+      {$sort: {created: -1}},
+      {$group: {
+        _id:'$data_type',
+        added:{$first:'$added'},
+        created:{$first:'$created'},
+        transmission_cuid:{$first:'$transmission_cuid'},
+        payload:{$first:'$payload'}
+      }},
+      {$project: {
+        _id: 0,
+        data_type:'$_id',
+        added: 1,
+        created: 2,
+        transmission_cuid: 3,
+        payload: 4
+      }}
+    ]);
 
     /*if (req.query.limit) {
       query = query.limit(+req.query.limit) // cast to number
