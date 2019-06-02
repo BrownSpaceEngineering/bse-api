@@ -197,6 +197,8 @@ router.get('/latest', function (req, res, next) {
 router.get('/latest_single', function (req, res, next) {
   try {
     var curInfoQuery = CurrentInfo.find().sort('-created').limit(1);
+    // take (only) the first (latest) piece of data for each of the 5
+    // data_type's (so we can access all possible signals)
     var dataQuery = Data.aggregate([
       {$sort: {created: -1}},
       {$group: {
