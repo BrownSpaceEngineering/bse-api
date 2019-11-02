@@ -19,7 +19,7 @@
     "dotenv": "^5.0.1",
     "emailjs": "^2.2.0",
     "express": "^4.16.3",
-    "mongoose": "^5.0.17",
+    "mongoose": "^5.7.5",
     "morgan": "^1.9.0",
     "path": "^0.12.7",
     "profanity-util": "^0.2.0",
