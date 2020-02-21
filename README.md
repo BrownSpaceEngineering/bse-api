@@ -15,27 +15,10 @@
    `.env` (don't miss the dot)
    ```
    DATABASE_URI="127.0.0.1:27017"
-   CONST1=1193
-   CONST2=547
-   MULTIPLIER=200000
-   SECRET="blahblah"
+   CONST1=1000
+   CONST2=500
+   MULTIPLIER=300000
+   SECRET="foobar"
    ```
    
-   and `config.js`
-   ```
-   // basic server-specific configuration for API
-   exports.SERVER_PORT = 3000;
-   exports.SLACK_WEBHOOK_URL = "http://localhost:3000"
-   exports.EMAIL_RECIPIENTS = {
-     // "someone@gmail.com": "full"
-   };
-   // email config as used by emailjs
-   exports.EMAIL_CONFIG = {
-     user: "me.me",
-     password:"mysecretpassword",
-     host: "smtp.gmail.com",
-     ssl: true
-   };
-   exports.FROM_ADDRESS = "this.is.an.email@gmail.com";
-   exports.TWIT_CONFIG = null;
-   ```
+   and `config.js` based on `config-sample.js` (i.e. run `cp config-sample.js config.js`)
