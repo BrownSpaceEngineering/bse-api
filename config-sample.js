@@ -1,8 +1,8 @@
 // basic server-specific configuration for API
-exports.SERVER_PORT = 8080;
+exports.SERVER_PORT = 3000;
 exports.SLACK_WEBHOOK_URL = "https://hooks.slack.com/..."
 exports.EMAIL_RECIPIENTS = {
-	"email@example.com"
+	// "email@example.com": "full"
 }
 // email config as used by emailjs
 exports.EMAIL_CONFIG = {
