@@ -44,6 +44,8 @@ function publishTransmission(body, transmission, storedTransmission, postPublicl
   } else {
     console.log(chalk.red("didn't send email on packet becuase no recipients or no email config specified"));
   }
+
+
 }
 
 function dateStr(dt) {
@@ -156,6 +158,10 @@ function postTweet(body, transmission, storedTransmission) {
        }
      });
   }
+}
+
+function postToSatNogs(body,transmission,storedTransmission){
+
 }
 
 var MAX_STATION_NAME_LEN = 30;
