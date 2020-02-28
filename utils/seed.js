@@ -27,8 +27,9 @@ var flashBurstPacket = require('./samplePackets/flashBurstPacket.json');
 var flashCmpPacket = require('./samplePackets/flashCmpPacket.json');
 var idlePacket = require('./samplePackets/idlePacket.json');
 var lowPowerPacket = require('./samplePackets/lowPowerPacket.json');
+var realPacket = require('./samplePackets/real_equisat_packet.json');
 
-var packets = [attitudePacket, flashBurstPacket, flashCmpPacket, idlePacket, lowPowerPacket];
+var packets = [realPacket]; //[attitudePacket, flashBurstPacket, flashCmpPacket, idlePacket, lowPowerPacket];
 
 var packetPromises = packets.map(packet => {
   var packetOption = Object.assign({}, options);

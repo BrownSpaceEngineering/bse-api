@@ -44,8 +44,6 @@ function publishTransmission(body, transmission, storedTransmission, postPublicl
   } else {
     console.log(chalk.red("didn't send email on packet becuase no recipients or no email config specified"));
   }
-
-
 }
 
 function dateStr(dt) {
@@ -160,8 +158,13 @@ function postTweet(body, transmission, storedTransmission) {
   }
 }
 
-function postToSatNogs(body,transmission,storedTransmission){
+var sendUrl = "https://db.satnogs.org/api/telemetry/";
+var data = '';
 
+function postToSatNogs(body,transmission,storedTransmission){
+  fetch(sendUrl, { method: 'POST', body: data })
+    .then(res => res.json()) // expecting a json response
+    .then(json => console.log(json));
 }
 
 var MAX_STATION_NAME_LEN = 30;
