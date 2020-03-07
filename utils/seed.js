@@ -38,10 +38,12 @@ var packetPromises = packets.map(packet => {
     transmission: packet.parsed,
     raw: packet.corrected + chance.hash({length: 64}), // something random
     corrected: packet.corrected,
-    station_name: 'Test Computer',
+    station_name: 'Ladd Observatory',
     secret: secret, // process.env.SECRET,
     post_publicly: true,
     source: "test_source",
+    latitude: 41.839157,
+    longitude: -71.398982
     // rx_time: Date.now()
   }
 

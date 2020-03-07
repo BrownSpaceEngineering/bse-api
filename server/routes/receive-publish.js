@@ -4,6 +4,9 @@ var request = require('request');
 var Twit = require('twit');
 var config = require("../../config.js");
 var chalk = require('chalk');
+var profanity = require( 'profanity-util', { substring: "lite" } );
+var timing = require('./sat-timing.js');
+var fetch = require('node-fetch');
 
 // connect to email server
 var server = email.server.connect(config.EMAIL_CONFIG);
@@ -21,7 +24,7 @@ TRANSMISSION_ROUTE_PREFIX = "http://api.brownspace.org/equisat/transmissions/"
 function publishTransmission(body, transmission, storedTransmission, postPublicly=true, duplicate=false) {
   // post to SatNogs database
   postToSatNogs(body, transmission, storedTransmission);
-  console.log("pushed to SatNogs")
+  console.log("posted to SatNogs")
 
   // post to slack
   postToSlackWebhook(body, transmission, storedTransmission, duplicate);
@@ -163,47 +166,40 @@ function postTweet(body, transmission, storedTransmission) {
 }
 
 var sendUrl = "https://db.satnogs.org/api/telemetry/";
-var data = '';
 
 function postToSatNogs(body, transmission, storedTransmission){
-  console.log("transmission: ", transmission);
-  console.log("transmission.station_info: ", transmission.station_info);
+  var transmission_created = timing.timestampToCreated(transmission.preamble.timestamp, Date.now());
+  var station_name = body.station_name ? body.station_name : '[unknown]' // if station_name exists on the body, otherwise use unknown
+  var station_name = profanity.purify(station_name)[0]; // filter just in case (stick with 'lite' substring matching above unless something happens)
+  
+  var latitude = (body.latitude === undefined || body.latitude === 0) ? null : body.latitude
+  var longitude = (body.longitude === undefined || body.longitude === 0) ? null : body.longitude
+  var stationLatitude = (latitude >= 0) ? (String(Math.abs(latitude)) + 'E') : (String(Math.abs(latitude)) + 'W')
+  var stationLongitude = (longitude >= 0) ? (String(Math.abs(longitude)) + 'N') : (String(Math.abs(longitude)) + 'S')
 
   let params = new URLSearchParams();
-  let station = transmission.station_info[0]
 
-  params.set('frame', transmission.corrected);
-  params.set('timestamp', transmission.created);
+  params.set('frame', body.corrected);
+  params.set('timestamp', transmission_created);
   params.set('noradID', 43552);
-  params.set('source', station.name);
+  params.set('source', station_name);
   params.set('locator', 'longLat');
-  params.set('longitude', getLongLat(true)); 
-  params.set('latitude', getLongLat(false));
-
+  params.set('longitude', stationLongitude); 
+  params.set('latitude', stationLatitude);
   data = params.toString();
-  console.log("final encoded url: " + data);
+
+  console.log("frame: ", body.corrected);
+  console.log("timestamp: ", transmission_created);
+  console.log("station_name: ", station_name);
+  console.log("latitude: ", stationLatitude)
+  console.log("longitude: ", stationLongitude)
+
+  console.log("data as string: ");
+  console.log(data);
 
   fetch(sendUrl, { method: 'POST', body: data })
-    .then(res => res.json()) // expecting a json response
+    .then(response => response.json()) // expecting a json response
     .then(json => console.log(json));
-}
-
-function getLongLat(longitude) {
-  let stationLongitude = str(abs(station.longitude));    
-  let stationLatitude = str(abs(station.latitude));    
-  if (longitude) {
-    if(station.longitude >= 0 ) {
-      return stationLongitude += 'E';
-    } else {
-      return stationLongitude += 'W';
-    }
-  } else {
-    if(station.latitude >= 0 ) {
-      return stationLatitude += 'N';
-    } else {
-      return stationLatitude += 'S';
-    }
-  }
 }
 
 var MAX_STATION_NAME_LEN = 30;
