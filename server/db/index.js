@@ -8,10 +8,9 @@ var password = process.env.DATABASE_USER_PASSWORD;
 var uri = process.env.DATABASE_URI;
 
 // Export a Promise to connect
-// Export a Promise to connect
 if ((user == "" || user == undefined) && (password == "" || password == undefined)) {
-  var connectURI = `mongodb://${uri}`
+  var connectURI = `mongodb+srv://${uri}`
 } else {
-  var connectURI = `mongodb://${user}:${password}@${uri}`
+  var connectURI = `mongodb+srv://${user}:${password}@${uri}`
 }
 module.exports = mongoose.connect(connectURI);
