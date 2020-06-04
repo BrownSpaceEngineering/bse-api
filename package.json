@@ -20,7 +20,7 @@
     "emailjs": "^2.2.0",
     "express": "^4.16.3",
     "mongoose": "^5.0.17",
-    "morgan": "^1.9.0",
+    "morgan": "^1.9.1",
     "path": "^0.12.7",
     "profanity-util": "^0.2.0",
     "request": "^2.85.0",
